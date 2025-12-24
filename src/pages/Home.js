@@ -6,7 +6,7 @@ const Home = () => {
     const concours = [
         {
             id: 1,
-            title: 'Concours Administratifs',
+            title: 'Preparations aux exemuns officiels',
             description: 'Préparation aux concours de la fonction publique',
             icon: <FaGraduationCap />,
         },
@@ -59,9 +59,9 @@ const Home = () => {
             {/* Hero Section */}
             <section className="hero-section text-center">
                 <Container>
-                    <h1>Préparation aux Concours</h1>
+                    <h1>Monprof </h1>
                     <p className="lead">
-                        Une formation complète et personnalisée pour réussir vos concours
+                        Une formation complète et personnalisée pour réussir vos examuns et concours, un accompgnement dans les termes de l'art jusqu'a l'atteinte de vos objectifs.
                     </p>
                 </Container>
             </section>
@@ -69,7 +69,7 @@ const Home = () => {
             {/* Concours Section */}
             <section className="py-5">
                 <Container>
-                    <h2 className="text-center section-title">Nos Formations</h2>
+                    <h2 className="text-center section-title">Nos offres</h2>
                     <Row>
                         {concours.map((concour) => (
                             <Col key={concour.id} md={6} lg={3} className="mb-4">

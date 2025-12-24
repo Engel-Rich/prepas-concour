@@ -9,7 +9,7 @@ const Navbar = () => {
             <Container>
                 <BootstrapNavbar.Brand as={Link} to="/">
                     <FaGraduationCap className="me-2" style={{ fontSize: '1.5rem' }} />
-                    Prépa Concours
+                    Monprof
                 </BootstrapNavbar.Brand>
                 <BootstrapNavbar.Toggle aria-controls="basic-navbar-nav" />
                 <BootstrapNavbar.Collapse id="basic-navbar-nav">
