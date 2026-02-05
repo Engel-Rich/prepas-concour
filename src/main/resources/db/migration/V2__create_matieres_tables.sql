@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS Matieres (
+    id UUID PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    logoUrl TEXT,
+    isActive BOOLEAN DEFAULT TRUE,
+    metadata JSONB,
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

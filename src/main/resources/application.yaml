@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: prepa-concour
+  datasource:
+    url: jdbc:postgresql://localhost:5432/prepa_concour
+    username: postgres
+    password: password
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
