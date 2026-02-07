@@ -1,4 +1,4 @@
-package com.mutrix.prepa.infrastructure.persistence.repositories;
+package com.mutrix.prepa.infrastructure.persistence.data_repositories;
 
 import com.mutrix.prepa.infrastructure.persistence.entities.UserEntity;
 import org.springframework.data.domain.Page;

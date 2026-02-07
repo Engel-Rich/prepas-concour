@@ -6,12 +6,13 @@ import org.springframework.data.domain.Page;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface UserRepositoryInterface {
 
     public Users CreateUser(Users users);
 
-    public Users GetUserById(String id);
+    public Users GetUserById(UUID id);
 
     public Optional<Users> GetUserByEmail(String email);
 
@@ -21,7 +22,7 @@ public interface UserRepositoryInterface {
 
     public Users UpdateUser(Users users);
 
-    public Page<User> GetAllUsers(int page, int size);
+    public Page<Users> GetAllUsers(Integer page, Integer size);
 
     public void DeleteUser(String id);
 }

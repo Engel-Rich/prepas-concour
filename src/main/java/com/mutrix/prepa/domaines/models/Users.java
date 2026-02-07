@@ -33,7 +33,7 @@ public class Users {
     private LocalDateTime updatedAt;
     private Map<String, Object> metadata;
 
-    public Users(String firebaseUid, String phone, String fcmToken, List<UserRole> roles) {
+    public  Users(String firebaseUid, String phone, String fcmToken, List<UserRole> roles) {
         this.firebaseUid = firebaseUid;
         this.phone = phone;
         this.fcmToken = fcmToken;

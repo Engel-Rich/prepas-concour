@@ -1,5 +1,5 @@
 package com.mutrix.prepa.domaines.notifications.providers;
 
-public interface SmsNotificationChannel {
+public interface SmsNotificationProvider {
     public void sendSmsNotification(String phoneNumber, String message);
 }
