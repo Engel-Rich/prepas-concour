@@ -2,10 +2,10 @@ package com.mutrix.prepa.infrastructure.notifications.factories;
 
 import com.mutrix.prepa.domaines.notifications.NotificationsChannel;
 import com.mutrix.prepa.domaines.valueobjects.NotificationType;
-import com.mutrix.prepa.infrastructure.notifications.services.EmailNotificationChannel;
-import com.mutrix.prepa.infrastructure.notifications.services.PushNotificationChannel;
-import com.mutrix.prepa.infrastructure.notifications.services.SmsNotificationchannel;
-import com.mutrix.prepa.infrastructure.notifications.services.WhatsAppNotificationChannel;
+import com.mutrix.prepa.infrastructure.notifications.channels.EmailNotificationChannel;
+import com.mutrix.prepa.infrastructure.notifications.channels.PushNotificationChannel;
+import com.mutrix.prepa.infrastructure.notifications.channels.SmsNotificationchannel;
+import com.mutrix.prepa.infrastructure.notifications.channels.WhatsAppNotificationChannel;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 

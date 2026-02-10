@@ -1,4 +1,4 @@
-package com.mutrix.prepa.infrastructure.notifications.services;
+package com.mutrix.prepa.infrastructure.notifications.channels;
 
 import com.mutrix.prepa.domaines.notifications.NotificationsChannel;
 import com.mutrix.prepa.domaines.notifications.providers.WhatsAppNotificationProvider;

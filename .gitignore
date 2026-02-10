@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+#Exclude all firebase-service-account.json files
+
+src/main/resources/firebase-service-account.json
