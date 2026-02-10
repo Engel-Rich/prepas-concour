@@ -33,4 +33,4 @@ build/
 .vscode/
 #Exclude all firebase-service-account.json files
 
-src/main/resources/firebase-service-account.json
+!**/firebase-service-account.json
