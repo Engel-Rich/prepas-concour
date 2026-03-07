@@ -4,23 +4,24 @@ import com.mutrix.prepa.domaines.notifications.NotificationsChannel;
 import com.mutrix.prepa.domaines.valueobjects.NotificationType;
 import com.mutrix.prepa.infrastructure.notifications.channels.EmailNotificationChannel;
 import com.mutrix.prepa.infrastructure.notifications.channels.PushNotificationChannel;
-import com.mutrix.prepa.infrastructure.notifications.channels.SmsNotificationchannel;
+import com.mutrix.prepa.infrastructure.notifications.channels.SmsNotificationChannels;
 import com.mutrix.prepa.infrastructure.notifications.channels.WhatsAppNotificationChannel;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
-@AllArgsConstructor
-@NoArgsConstructor
+import org.springframework.stereotype.Component;
+
+@Component
+@RequiredArgsConstructor
 public class NotificationFactory {
-    private EmailNotificationChannel emailNotificationService;
-    private SmsNotificationchannel smsNotificationService;
-    private WhatsAppNotificationChannel whatsAppNotificationService;
-    private PushNotificationChannel pushNotificationServices;
+    private final EmailNotificationChannel emailNotificationService;
+    private final WhatsAppNotificationChannel whatsAppNotificationService;
+    private final PushNotificationChannel pushNotificationServices;
+    private final SmsNotificationChannels smsNotificationChannel;
 
     public NotificationsChannel create(NotificationType type) {
         return switch (type) {
             case EMAIL -> emailNotificationService;
-            case SMS -> smsNotificationService;
+            case SMS -> smsNotificationChannel;
             case PUSH -> pushNotificationServices;
             case WHATSAPP -> whatsAppNotificationService;
             default -> throw new IllegalArgumentException("Invalid notification type: " + type);

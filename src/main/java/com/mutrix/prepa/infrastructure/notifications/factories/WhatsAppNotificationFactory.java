@@ -4,7 +4,9 @@ import com.mutrix.prepa.domaines.notifications.providers.WhatsAppNotificationPro
 import com.mutrix.prepa.infrastructure.notifications.providers.whatsapp.D7NetworkNotificationProvider;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
+@Component
 @RequiredArgsConstructor
 public class WhatsAppNotificationFactory {
 

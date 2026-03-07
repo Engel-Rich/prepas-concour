@@ -1,0 +1,204 @@
+package com.mutrix.prepa.infrastructure.implementations;
+
+import java.util.Arrays;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+import com.google.firebase.FirebaseException;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthException;
+import com.google.firebase.auth.FirebaseToken;
+import com.google.firebase.auth.UserInfo;
+import com.google.firebase.auth.UserRecord;
+import com.mutrix.prepa.application.dto.commandes.users.CreateFirebaseUserDto;
+import com.mutrix.prepa.domaines.models.FirebaseUser;
+import com.mutrix.prepa.domaines.services.FirebaseService;
+
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
+@Service
+public class FirebaseServiceImplement implements FirebaseService {
+
+    private static final Logger log = LoggerFactory.getLogger(FirebaseServiceImplement.class);
+
+    @Override
+    public FirebaseUser createUser(CreateFirebaseUserDto createFirebaseUserDto) {
+        try {
+            final UserRecord.CreateRequest request = new UserRecord.CreateRequest()
+                    .setEmailVerified(createFirebaseUserDto.getEmailVerified() != null
+                            && createFirebaseUserDto.getEmailVerified())
+                    .setPassword(createFirebaseUserDto.getPassword());
+            if (createFirebaseUserDto.getPhotoUrl() != null && !createFirebaseUserDto.getPhotoUrl().isEmpty()) {
+                request.setPhotoUrl(createFirebaseUserDto.getPhotoUrl());
+            }
+            if (createFirebaseUserDto.getPassword() != null && !createFirebaseUserDto.getPassword().isEmpty()) {
+                request.setPassword(createFirebaseUserDto.getPassword());
+            }
+            if (createFirebaseUserDto.getDisplayName() != null && !createFirebaseUserDto.getDisplayName().isEmpty()) {
+                request.setDisplayName(createFirebaseUserDto.getDisplayName());
+            }
+            if (createFirebaseUserDto.getPhoneNumber() != null && !createFirebaseUserDto.getPhoneNumber().isEmpty()) {
+                request.setPhoneNumber(createFirebaseUserDto.getPhoneNumber());
+            }
+            if (createFirebaseUserDto.getEmail() != null && !createFirebaseUserDto.getEmail().isEmpty()) {
+                request.setEmail(createFirebaseUserDto.getEmail());
+            }
+            final UserRecord record = FirebaseAuth.getInstance().createUser(request);
+            return this.mapToFirebaseUser(record);
+        } catch (FirebaseException exception) {
+            System.out.println(exception.getErrorCode());
+            log.error("Firebase Error creating user: {}, Code : {}", exception.getMessage(), exception.getErrorCode());
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            log.error("Auther Error creating user: {}, Error type {}", e.getMessage(), e.getClass().toString());
+        }
+        return null;
+    }
+
+    @Override
+    public void deleteUser(String uid) {
+        try {
+            FirebaseAuth.getInstance().deleteUser(uid);
+        } catch (FirebaseAuthException e) {
+            log.error("Error deleting user: {}, Code : {}", e.getMessage(), e.getErrorCode());
+        } catch (Exception e) {
+            log.error("Error deleting user: {}", e.getMessage());
+        }
+    }
+
+    @Override
+    public String createCustomToken(String uid) {
+        try {
+            return FirebaseAuth.getInstance().createCustomToken(uid);
+        } catch (Exception e) {
+            log.error("Error creating custom token: {}", e.getMessage());
+        }
+        return null;
+    }
+
+    @Override
+    public FirebaseUser updateUser(String uid, CreateFirebaseUserDto dto) {
+        try {
+            final UserRecord record = FirebaseAuth.getInstance().getUser(uid);
+            FirebaseAuth.getInstance().updateUser(
+                    new UserRecord.UpdateRequest(uid)
+                            .setDisplayName(
+                                    dto.getDisplayName() != null ? dto.getDisplayName() : record.getDisplayName())
+                            .setEmail(dto.getEmail() != null ? dto.getEmail() : record.getEmail())
+                            .setPhoneNumber(
+                                    dto.getPhoneNumber() != null ? dto.getPhoneNumber() : record.getPhoneNumber())
+                            .setPassword(dto.getPassword() != null ? dto.getPassword() : null)
+                            .setPhotoUrl(dto.getPhotoUrl() != null ? dto.getPhotoUrl() : record.getPhotoUrl())
+                            .setEmailVerified(
+                                    dto.getEmailVerified() != null ? dto.getEmailVerified() : record.isEmailVerified())
+                            .setDisabled(dto.getDisabled() != null ? dto.getDisabled() : record.isDisabled())
+                            .setPassword(dto.getPassword() != null ? dto.getPassword() : null));
+            return this.mapToFirebaseUser(record);
+        } catch (FirebaseException e) {
+            log.error("Error updating user: {}, Code : {}", e.getMessage(), e.getErrorCode());
+            return null;
+        } catch (Exception e) {
+            log.error("Error updating user: {}", e.getMessage());
+        }
+        return null;
+    }
+
+    @Override
+    public FirebaseUser getUserByUid(String uid) {
+        try {
+            final UserRecord record = FirebaseAuth.getInstance().getUser(uid);
+            return this.mapToFirebaseUser(record);
+        } catch (FirebaseException e) {
+            log.error("Error fetching user: {}, Code : {}", e.getMessage(), e.getErrorCode());
+        } catch (Exception e) {
+            log.error("Error fetching user: {}", e.getMessage());
+        }
+        return null;
+    }
+
+    @Override
+    public FirebaseUser getUserByEmail(String email) {
+        try {
+            final UserRecord record = FirebaseAuth.getInstance().getUserByEmail(email);
+            return this.mapToFirebaseUser(record);
+        } catch (FirebaseException e) {
+            log.error("Error fetching user: {}, Code : {}", e.getMessage(), e.getErrorCode());
+        } catch (Exception e) {
+            log.error("Error fetching user: {}", e.getMessage());
+        }
+        return null;
+    }
+
+    @Override
+    public FirebaseUser getByPhoneNumber(String phoneNumber) {
+        try {
+            final UserRecord record = FirebaseAuth.getInstance().getUserByPhoneNumber(phoneNumber);
+            return this.mapToFirebaseUser(record);
+        } catch (FirebaseException e) {
+            log.error("Error fetching user: {}, Code : {}", e.getMessage(), e.getErrorCode());
+        } catch (Exception e) {
+            log.error("Error fetching user: {}", e.getMessage());
+        }
+        return null;
+    }
+
+    @Override
+    public FirebaseUser verifyIdToken(String token) {
+        try {
+            final FirebaseToken token1 = FirebaseAuth.getInstance().verifyIdToken(token);
+            return this.getUserByUid(token1.getUid());
+        } catch (FirebaseException e) {
+            log.error("Error verifying token: {}, Code : {}", e.getMessage(), e.getErrorCode());
+        } catch (Exception e) {
+            log.error("Error verifying token: {}", e.getMessage());
+        }
+        return null;
+    }
+
+    @Override
+    public void sendPasswordResetEmail(String email) {
+        try {
+            FirebaseAuth.getInstance().generatePasswordResetLink(email);
+            // Send Link By email or phone number using notification service
+        } catch (FirebaseException e) {
+            log.error("Error sending password reset email: {}, Code : {}", e.getMessage(), e.getErrorCode());
+        } catch (Exception e) {
+            log.error("Error sending password reset email: {}", e.getMessage());
+        }
+    }
+
+    @Override
+    public void sendEmailVerification(String uid) {
+        try {
+            FirebaseAuth.getInstance()
+                    .generateEmailVerificationLink(FirebaseAuth.getInstance().getUser(uid).getEmail());
+            // Send Link By email using notification service
+        } catch (FirebaseException e) {
+            log.error("Error sending email verification: {}, Code : {}", e.getMessage(), e.getErrorCode());
+        } catch (Exception e) {
+            log.error("Error sending email verification: {}", e.getMessage());
+        }
+    }
+
+    private FirebaseUser mapToFirebaseUser(UserRecord record) {
+        return FirebaseUser.builder()
+                .uid(record.getUid())
+                .email(record.getEmail())
+                .displayName(record.getDisplayName())
+                .photoUrl(record.getPhotoUrl())
+                .phoneNumber(record.getPhoneNumber())
+                .emailVerified(record.isEmailVerified())
+                .disabled(record.isDisabled())
+
+                .metadata(Map.of(
+                        "creationTime", record.getUserMetadata().getCreationTimestamp(),
+                        "lastSignInTime", record.getUserMetadata().getLastSignInTimestamp(),
+                        "LoginProviders",
+                        Arrays.stream(record.getProviderData()).map(UserInfo::getDisplayName).toList()))
+                .build();
+    }
+}

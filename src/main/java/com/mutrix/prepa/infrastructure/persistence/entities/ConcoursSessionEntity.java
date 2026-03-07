@@ -4,11 +4,13 @@ import com.mutrix.prepa.domaines.valueobjects.ConcoursSessionsStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import java.util.UUID;
+
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "Concours_Sessions")
@@ -31,25 +33,30 @@ public class ConcoursSessionEntity {
 
     private String description;
 
-    @Column(name = "startdate", columnDefinition = "timestamp without time zone",nullable = false)
+    private  Double amount;
+
+    @Column(columnDefinition = "timestamp without time zone", nullable = false)
     private LocalDate startDate;
 
-    @Column(name = "enddate", columnDefinition = "timestamp without time zone",nullable = false)
+    @Column(columnDefinition = "timestamp without time zone", nullable = false)
     private LocalDate endDate;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private ConcoursSessionsStatus status;
 
-    @Column(name = "isactive")
+    @Column()
     private Boolean isActive;
 
-    @Column(name = "created_at")
+    @Column()
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at")
+    @Column()
     private LocalDateTime updatedAt;
 
     @Column(columnDefinition = "jsonb")
+    @JdbcTypeCode(SqlTypes.JSON)
     private String metadata;
 
     @PostUpdate

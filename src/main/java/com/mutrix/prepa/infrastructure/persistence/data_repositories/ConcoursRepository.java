@@ -8,4 +8,5 @@ import java.util.UUID;
 
 public interface ConcoursRepository extends JpaRepository<ConcoursEntity, UUID> {
     List<ConcoursEntity> findByNameContainingIgnoreCase(String name);
+
 }

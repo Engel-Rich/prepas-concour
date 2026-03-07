@@ -4,7 +4,9 @@ import com.mutrix.prepa.domaines.notifications.providers.PushNotificationProvide
 import com.mutrix.prepa.infrastructure.notifications.providers.push.FirebasePushNotificationProvider;
 import com.mutrix.prepa.infrastructure.notifications.providers.push.OneSignalPushNotificationProvider;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
+@Component
 @RequiredArgsConstructor
 public class PushNotificationFactory {
     private  final FirebasePushNotificationProvider firebasePushNotificationProvider;

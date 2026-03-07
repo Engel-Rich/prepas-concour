@@ -5,7 +5,6 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
 
@@ -23,6 +22,7 @@ public class ConcoursSessions {
     private String description;
     private LocalDate startDate;
     private LocalDate endDate;
+    private  Double amount;
     private ConcoursSessionsStatus status;
     private Boolean isActive;
     private LocalDateTime createdAt;
@@ -40,7 +40,8 @@ public class ConcoursSessions {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public ConcoursSessions(UUID id, UUID concoursId, String name, String description, LocalDate startDate, LocalDate endDate) {
+    public ConcoursSessions(UUID id, UUID concoursId, String name, String description, LocalDate startDate,
+            LocalDate endDate) {
         this.id = id;
         this.concoursId = concoursId;
         this.name = name;

@@ -5,8 +5,9 @@ import com.mutrix.prepa.infrastructure.notifications.providers.emails.EmailJsNot
 import com.mutrix.prepa.infrastructure.notifications.providers.emails.ResendEmailProvider;
 //import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
-
+@Component
 @RequiredArgsConstructor
 public class EmailNotificationFactory {
     private final EmailJsNotificationProvider emailJsNotificationProvider;

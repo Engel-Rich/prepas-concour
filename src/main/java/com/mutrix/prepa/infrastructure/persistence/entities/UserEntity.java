@@ -1,17 +1,20 @@
 package com.mutrix.prepa.infrastructure.persistence.entities;
 
-import com.mutrix.prepa.domaines.valueobjects.UserRole;
+
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
+
 @Entity
-@Table(name = "Users")
+@Table(name = "UserModel")
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -22,7 +25,7 @@ public class UserEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false, unique = true, name = "firebaseuid")
+    @Column(nullable = false, unique = true)
     private String firebaseUid;
 
     private String name;
@@ -33,49 +36,52 @@ public class UserEntity {
     @Column(unique = true)
     private String phone;
 
-    @Column(name = "profilepictureurl")
+    @Column()
     private String profilePictureUrl;
 
-    @Column(name = "fcmtoken")
+    @Column()
     private String fcmToken;
 
-    @Column(name = "passwordhash")
+    @Column()
     private String passwordHash;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "roles", nullable = false)
-    private List<UserRole> roles = List.of(UserRole.USER);
+    @ManyToMany
+    @JoinTable(
+            name = "users_roles",
+            joinColumns = @JoinColumn(name = "users_id"),
+            inverseJoinColumns = @JoinColumn(name = "roles_id")
+    )
+    private List<RoleEntity> roles;
 
-    @Column(name = "isactive")
+    @Column()
     private Boolean isActive;
 
-    @Column(name = "hasemailverified")
-    private Boolean isEmailVerified;
+    @Column()
+    private Boolean hasEmailVerified;
 
-    @Column(name = "hasphoneverified")
-    private Boolean isPhoneVerified;
+    @Column()
+    private Boolean hasPhoneVerified;
 
-    @Column(name = "lastlogin")
+    @Column()
     private Date lastLogin;
 
-    @Column(name = "createdat")
+    @Column()
     private LocalDateTime createdAt;
 
-    @Column(name = "updatedat")
+    @Column()
     private LocalDateTime updatedAt;
 
     @Column(columnDefinition = "jsonb")
+    @JdbcTypeCode(SqlTypes.JSON)
     private String metadata;
 
-
-
     @PostUpdate
-    public  void onUpdate(){
-        this.updatedAt= LocalDateTime.now();
+    public void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 
     @PostPersist
-    public void onCreate(){
+    public void onCreate() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }

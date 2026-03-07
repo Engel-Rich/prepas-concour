@@ -1,24 +1,18 @@
 package com.mutrix.prepa.infrastructure.mappers;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Map;
+
 import com.mutrix.prepa.cors.MetadataMapper;
 import com.mutrix.prepa.domaines.models.Concours;
 import com.mutrix.prepa.infrastructure.persistence.entities.ConcoursEntity;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.Map;
 
 public final class ConcoursEntityMapper {
 
-    private static final Logger log = LoggerFactory.getLogger(ConcoursEntityMapper.class);
-
-    private  ConcoursEntityMapper() {
+    private ConcoursEntityMapper() {
         // Private constructor to prevent instantiation
     }
 
-    public  static ConcoursEntity toConcoursEntity(Concours concours) {
+    public static ConcoursEntity toConcoursEntity(Concours concours) {
         if (concours == null) {
             return null;
         }
@@ -37,21 +31,21 @@ public final class ConcoursEntityMapper {
 
     }
 
-    public  static  Concours toConcoursDomainModel(ConcoursEntity concoursEntity) {
+    public static Concours toConcoursDomainModel(ConcoursEntity concoursEntity) {
         if (concoursEntity == null) {
             return null;
         }
         Map<String, Object> metadata = MetadataMapper.mapFromJsonToMap(concoursEntity.getMetadata());
-    return  Concours.builder()
-            .id(concoursEntity.getId())
-            .name(concoursEntity.getName())
-            .description(concoursEntity.getDescription())
-            .logoUrl(concoursEntity.getLogoUrl())
-            .createdAt(concoursEntity.getCreatedAt())
-            .updatedAt(concoursEntity.getUpdatedAt())
-            .isActive(concoursEntity.getIsActive())
-            .metadata(metadata)
-            .build();
+        return Concours.builder()
+                .id(concoursEntity.getId())
+                .name(concoursEntity.getName())
+                .description(concoursEntity.getDescription())
+                .logoUrl(concoursEntity.getLogoUrl())
+                .createdAt(concoursEntity.getCreatedAt())
+                .updatedAt(concoursEntity.getUpdatedAt())
+                .isActive(concoursEntity.getIsActive())
+                .metadata(metadata)
+                .build();
     }
 
 }

@@ -1,9 +1,11 @@
 package com.mutrix.prepa.infrastructure.notifications.providers.emails;
 
 import com.mutrix.prepa.domaines.notifications.providers.EmailNotificationProvider;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+@Component
 public class ResendEmailProvider implements EmailNotificationProvider {
 
     @Override

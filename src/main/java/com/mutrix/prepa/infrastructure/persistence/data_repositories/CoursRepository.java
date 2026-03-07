@@ -9,5 +9,5 @@ import java.util.UUID;
 
 public interface CoursRepository extends JpaRepository<CoursEntity, UUID> {
         Page<CoursEntity> findByMatiere_Id(UUID matiereId, Pageable pageable);
-        Page<CoursEntity> findByUsers_Id(UUID userId, Pageable pageable);
+        Page<CoursEntity> findByUser_Id(UUID userId, Pageable pageable);
 }

@@ -4,8 +4,10 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 import java.util.UUID;
+
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "Cours")
@@ -25,27 +27,28 @@ public class CoursEntity {
 
     private String body;
 
-    @Column(name = "videourl")
+    @Column()
     private String videoUrl;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "matiereid", nullable = false)
+    @JoinColumn(nullable = false)
     private MatiereEntity matiere;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "userid", nullable = false)
-    private UserEntity users;
+    @JoinColumn(nullable = false)
+    private UserEntity user;
 
-    @Column(name = "isactive")
+    @Column()
     private Boolean isActive;
 
-    @Column(name = "createdat")
+    @Column()
     private LocalDateTime createdAt;
 
-    @Column(name = "updatedat")
+    @Column()
     private LocalDateTime updatedAt;
 
     @Column(columnDefinition = "jsonb")
+    @JdbcTypeCode(SqlTypes.JSON)
     private String metadata;
 
 }

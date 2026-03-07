@@ -28,7 +28,7 @@ public final class CoursEntityMapper {
                 .isActive(entity.getIsActive())
                 .videoUrl(entity.getVideoUrl())
                 .matiereId(entity.getMatiere().getId())
-                .userId(entity.getUsers().getId())
+                .userId(entity.getUser().getId())
                 .metadata(metadata)
                 .build();
     }
@@ -48,7 +48,7 @@ public final class CoursEntityMapper {
                 .isActive(cours.getIsActive())
                 .videoUrl(cours.getVideoUrl())
                 .matiere(matiereEntity)
-                .users(userEntity)
+                .user(userEntity)
                 .metadata(metadata)
                 .build();
     }

@@ -5,8 +5,10 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 import java.util.UUID;
+
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "Matieres")
@@ -15,7 +17,8 @@ import java.util.UUID;
 @Getter
 @Setter
 @Builder
-public class MatiereEntity{
+@ToString()
+public class MatiereEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -26,16 +29,16 @@ public class MatiereEntity{
 
     private String description;
 
-    @Column(name = "logourl")
+    @Column()
     private String logoUrl;
 
-    @Column(name = "isactive")
+    @Column()
     private Boolean isActive;
 
-    @Column(name = "createdat")
+    @Column()
     private LocalDateTime createdAt;
 
-    @Column(name = "updatedat")
+    @Column()
     private LocalDateTime updatedAt;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "matiere", cascade = CascadeType.ALL)
@@ -43,16 +46,17 @@ public class MatiereEntity{
     private java.util.List<CoursEntity> cours;
 
     @Column(columnDefinition = "jsonb")
+    @JdbcTypeCode(SqlTypes.JSON)
     private String metadata;
 
     @PostPersist
-    public  void  onCreate(){
+    public void onCreate() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
 
     @PostUpdate
-    public void onUpdate(){
+    public void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
 

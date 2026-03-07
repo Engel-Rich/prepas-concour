@@ -1,20 +1,28 @@
 package com.mutrix.prepa.infrastructure.notifications.channels;
 
-import com.mutrix.prepa.domaines.notifications.NotificationsChannel;
-import com.mutrix.prepa.domaines.notifications.providers.EmailNotificationProvider;
-
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.stereotype.Component;
+
+import com.mutrix.prepa.domaines.notifications.NotificationsChannel;
+import com.mutrix.prepa.domaines.notifications.providers.EmailNotificationProvider;
+import com.mutrix.prepa.infrastructure.notifications.factories.EmailNotificationFactory;
+
+import lombok.RequiredArgsConstructor;
+
+@Component
+@RequiredArgsConstructor
 public class EmailNotificationChannel implements NotificationsChannel {
-    EmailNotificationProvider emailNotificationProvider;
+    private final EmailNotificationFactory emailNotificationFactory;
+    private final String emailProviderType = "RESEND";;
 
     @Override
-    public void sendNotification(String chanelValueElement, String title, String body, Map<String,Object> data) {
+    public void sendNotification(String chanelValueElement, String title, String body, Map<String, Object> data) {
         String subject = "";
         List<String> ccEmailAddresses = null;
-        if(data!=null){
-            subject =  data.containsKey("subject") ? (String) data.get("subject") : "";
+        if (data != null) {
+            subject = data.containsKey("subject") ? (String) data.get("subject") : "";
 
             Object ccObj = data.get("ccEmailAddresses");
 
@@ -28,8 +36,7 @@ public class EmailNotificationChannel implements NotificationsChannel {
         }
         // Generate template with title and body
         String content = "Title: " + title + "\n" + "Body: " + body;
+        EmailNotificationProvider emailNotificationProvider = emailNotificationFactory.create(emailProviderType);
         emailNotificationProvider.sendEmailNotification(chanelValueElement, subject, content, ccEmailAddresses);
     }
 }
-
-

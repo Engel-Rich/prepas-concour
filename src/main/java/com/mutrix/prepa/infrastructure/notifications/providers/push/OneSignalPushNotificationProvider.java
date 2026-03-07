@@ -1,7 +1,9 @@
 package com.mutrix.prepa.infrastructure.notifications.providers.push;
 
 import com.mutrix.prepa.domaines.notifications.providers.PushNotificationProvider;
+import org.springframework.stereotype.Component;
 
+@Component
 public class OneSignalPushNotificationProvider implements PushNotificationProvider {
 
     @Override

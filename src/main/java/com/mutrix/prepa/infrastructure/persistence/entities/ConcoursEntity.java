@@ -7,6 +7,9 @@ import lombok.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 @Entity
 @Table(name = "Concours")
 @AllArgsConstructor
@@ -25,19 +28,20 @@ public class ConcoursEntity {
 
     private String description;
 
-    @Column(name = "logourl")
+    @Column()
     private String logoUrl;
 
-    @Column(name = "isactive")
+    @Column()
     private Boolean isActive;
 
-    @Column(name = "createdat")
+    @Column()
     private LocalDateTime createdAt;
 
-    @Column(name = "updatedat")
+    @Column()
     private LocalDateTime updatedAt;
 
     @Column(columnDefinition = "jsonb")
+    @JdbcTypeCode(SqlTypes.JSON)
     private String metadata;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "concours", cascade = CascadeType.ALL)
@@ -45,13 +49,13 @@ public class ConcoursEntity {
     private java.util.List<ConcoursSessionEntity> sessions;
 
     @PostPersist
-    public  void  onCreate(){
+    public void onCreate() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
 
     @PostUpdate
-    public void onUpdate(){
+    public void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
 }
