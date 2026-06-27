@@ -59,12 +59,12 @@ public class ConcoursSessionEntity {
     @JdbcTypeCode(SqlTypes.JSON)
     private String metadata;
 
-    @PostUpdate
+    @PreUpdate
     public void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
 
-    @PostPersist
+    @PrePersist
     public void onCreate() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();

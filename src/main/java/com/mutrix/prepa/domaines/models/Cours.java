@@ -20,6 +20,7 @@ public class Cours {
     private String videoUrl;
     private UUID matiereId;
     private UUID userId;
+    private Boolean gratuit;
     private Boolean isActive;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

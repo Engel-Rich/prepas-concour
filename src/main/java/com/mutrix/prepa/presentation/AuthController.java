@@ -28,6 +28,7 @@ public class AuthController {
     private final InitiateLoginUseCase initiateLoginUseCase;
     private final RegistrationsInitiateUseCase registrationsInitiateUseCase;
     private final CompleteRegistrationUseCase completeRegistrationUseCase;
+    private final AdminLoginUseCase adminLoginUseCase;
     private final CompleteLoginUseCase completeLoginUseCase;
     private final LoginByOAuth2ProviderUseCase loginByOAuth2ProviderUseCase;
     private final ResendOtpUseCase resendOtpUseCase;
@@ -102,6 +103,19 @@ public class AuthController {
     @PostMapping("/otp/resend")
     public ResponseEntity<ApiResponseFormat<OtpResponse>> resendOtp(@RequestBody(required = true) @Valid ResendOtpCommand command) {
         OtpResponse response = this.resendOtpUseCase.execute(command);
+        return ResponseEntity.ok(ApiResponseFormat.fromResponse(response));
+    }
+
+    @Operation(summary = "Connexion administrateur", description = "Authentification par email et mot de passe pour les administrateurs")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Connexion réussie", content = @Content(schema = @Schema(implementation = AuthResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Identifiants invalides"),
+            @ApiResponse(responseCode = "403", description = "Accès refusé — rôle ADMIN requis")
+    })
+    @PostMapping("/admin/login")
+    public ResponseEntity<ApiResponseFormat<AuthResponse>> adminLogin(
+            @RequestBody(required = true) @Valid AdminLoginCommand command) {
+        AuthResponse response = this.adminLoginUseCase.execute(command);
         return ResponseEntity.ok(ApiResponseFormat.fromResponse(response));
     }
 

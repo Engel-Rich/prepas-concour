@@ -5,6 +5,7 @@ import com.mutrix.prepa.domaines.valueobjects.UserRole;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -47,4 +48,13 @@ public class UserResponse {
 
     @Schema()
     private Map<String, Object> metadata;
+
+    @Schema(description = "URL de la photo de profil", nullable = true)
+    private String profilePictureUrl;
+
+    @Schema(description = "Statut actif/inactif du compte")
+    private Boolean isActive;
+
+    @Schema(description = "Date d'inscription")
+    private LocalDateTime createdAt;
 }

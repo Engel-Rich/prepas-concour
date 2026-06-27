@@ -149,12 +149,25 @@ public class FirebaseServiceImplement implements FirebaseService {
     @Override
     public FirebaseUser verifyIdToken(String token) {
         try {
-            final FirebaseToken token1 = FirebaseAuth.getInstance().verifyIdToken(token);
-            return this.getUserByUid(token1.getUid());
-        } catch (FirebaseException e) {
-            log.error("Error verifying token: {}, Code : {}", e.getMessage(), e.getErrorCode());
+            // Vérifie la signature et l'expiration — appel réseau pour récupérer
+            // les clés publiques Google (mis en cache après le premier appel)
+            final FirebaseToken verified = FirebaseAuth.getInstance().verifyIdToken(token);
+
+            // On construit FirebaseUser DIRECTEMENT depuis les claims du token vérifié,
+            // sans faire un deuxième appel réseau getUser() qui peut échouer silencieusement.
+            return FirebaseUser.builder()
+                    .uid(verified.getUid())
+                    .email(verified.getEmail())
+                    .displayName(verified.getName())
+                    .photoUrl(verified.getPicture())
+                    .emailVerified(verified.isEmailVerified())
+                    .build();
+
+        } catch (com.google.firebase.auth.FirebaseAuthException e) {
+            log.error("Échec de vérification du ID Token Firebase : {} (code={})",
+                      e.getMessage(), e.getAuthErrorCode());
         } catch (Exception e) {
-            log.error("Error verifying token: {}", e.getMessage());
+            log.error("Erreur inattendue lors de la vérification du ID Token : {}", e.getMessage());
         }
         return null;
     }

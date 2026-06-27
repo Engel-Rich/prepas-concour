@@ -8,13 +8,19 @@ import java.util.List;
 @Component
 public class EmailJsNotificationProvider implements EmailNotificationProvider {
     @Override
-    public void sendEmailNotification(String emailAddress, String subject, String message, List<String> ccEmailAddresses) {
+    public void sendEmailNotification(List<String> emailAddress, String subject, String message, List<String> ccEmailAddresses) {
         // Implement EmailJS API call here
-        System.out.println("Sending email to: " + emailAddress);
-        System.out.println("Subject: " + subject);
-        System.out.println("Message: " + message);
-        if (ccEmailAddresses != null && !ccEmailAddresses.isEmpty()) {
-            System.out.println("CC: " + ccEmailAddresses);
-        }
+
+           emailAddress.forEach((address)->{
+
+               System.out.println("Sending email to: " + address);
+               System.out.println("Subject: " + subject);
+               System.out.println("Message: " + message);
+
+               if (ccEmailAddresses != null && !ccEmailAddresses.isEmpty()) {
+                   System.out.println("CC: " + ccEmailAddresses);
+               }
+           });
+
     }
 }

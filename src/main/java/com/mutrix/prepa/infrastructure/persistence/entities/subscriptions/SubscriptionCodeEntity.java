@@ -25,9 +25,6 @@ public class SubscriptionCodeEntity extends BaseEntity {
     @Column(nullable = false)
     private CodeStatus status;
 
-    @Column(nullable = false)
-    private Boolean isActive = true;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "subscription_id", nullable = false)
     private SubscriptionEntity subscription;

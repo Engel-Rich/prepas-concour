@@ -49,13 +49,13 @@ public class MatiereEntity {
     @JdbcTypeCode(SqlTypes.JSON)
     private String metadata;
 
-    @PostPersist
+    @PrePersist
     public void onCreate() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
 
-    @PostUpdate
+    @PreUpdate
     public void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }

@@ -20,6 +20,9 @@ public final class UserResponseMapper {
                 .hasPhoneVerified(user.getHasPhoneVerified())
                 .hasProfileCompleted(user.hasProfileCompleted())
                 .metadata(user.getMetadata())
+                .profilePictureUrl(user.getProfilePictureUrl())
+                .isActive(user.getIsActive())
+                .createdAt(user.getCreatedAt())
                 .build();
     }
 }

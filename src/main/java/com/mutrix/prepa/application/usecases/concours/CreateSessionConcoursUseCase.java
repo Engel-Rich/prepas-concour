@@ -37,6 +37,7 @@ public class CreateSessionConcoursUseCase {
                 .metadata(dto.getMetadata())
                 .startDate(dto.getStartDate())
                 .endDate(dto.getEndDate())
+                .amount(dto.getAmount())
                 .status(ConcoursSessionsStatus.ONGOING)
                 .description(dto.getDescription())
                 .build();

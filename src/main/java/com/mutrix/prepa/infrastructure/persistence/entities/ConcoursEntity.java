@@ -48,13 +48,13 @@ public class ConcoursEntity {
     @JsonIgnore
     private java.util.List<ConcoursSessionEntity> sessions;
 
-    @PostPersist
+    @PrePersist
     public void onCreate() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
 
-    @PostUpdate
+    @PreUpdate
     public void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }

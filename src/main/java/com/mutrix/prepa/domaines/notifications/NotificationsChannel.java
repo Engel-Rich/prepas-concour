@@ -1,7 +1,9 @@
 package com.mutrix.prepa.domaines.notifications;
 
+import com.mutrix.prepa.domaines.models.NotificationModel;
+
 import java.util.Map;
 
 public interface NotificationsChannel {
-        public void sendNotification(String chanelValueElement, String title, String body, Map<String,Object> data);
+        public void sendNotification(NotificationModel notificationModel);
 }

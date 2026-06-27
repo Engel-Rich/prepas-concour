@@ -1,22 +1,33 @@
 spring:
   application:
     name: prepa-concour
+
+  servlet:
+    multipart:
+      max-file-size: 200MB
+      max-request-size: 210MB
+
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/prepa_concour}
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:password}
-    driver-class-name: org.postgresql.Driver
+    url:                  ${DB_URL:jdbc:postgresql://localhost:5432/prepa_concour}
+    username:             ${DB_USERNAME:postgres}
+    password:             ${DB_PASSWORD:password}
+    driver-class-name:    org.postgresql.Driver
+
+  flyway:
+    out-of-order: true
+
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: validate
-    # show-sql: true
     properties:
       hibernate:
         format_sql: true
+
 server:
   servlet:
     context-path: /api/v1
+
 springdoc:
   api-docs:
     path: /api-docs
@@ -32,3 +43,24 @@ management:
   endpoint:
     health:
       show-details: always
+
+minio:
+  url:         ${MINIO_URL:http://localhost:9000}
+  bucket-name: ${MINIO_BUCKET:prepasbucket}
+  access-key:  ${MINIO_ACCESS_KEY:prepa-db-root}
+  secret-key:  ${MINIO_SECRET_KEY:prepa-db-pass}
+
+payment:
+  campay:
+    url:      ${CAMPAY_URL:https://demo.campay.net/api}
+    username: ${CAMPAY_USERNAME:demo_username}
+    password: ${CAMPAY_PASSWORD:demo_password}
+
+mail:
+  resend:
+    url:    ${RESEND_URL:https://api.resend.com}
+    apiKey: ${RESEND_API_KEY:re_placeholder}
+    from:   ${RESEND_FROM:Prepa Concours <noreply@mutrix.org>}
+
+firebase:
+  service-account-json: ${FIREBASE_SERVICE_ACCOUNT_JSON:}

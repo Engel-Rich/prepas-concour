@@ -44,6 +44,8 @@ public class CoursResponse {
             nullable = true
     )
     private UUID matiereId;
+    @Schema(description = "Indique si le cours est gratuit (true) ou payant (false)", example = "false")
+    private Boolean gratuit;
     @Schema(
             description = "Identifiant de l'utilisateur (auteur/propriétaire du cours)",
             example = "223e4567-e89b-12d3-a456-426614174111"
@@ -85,6 +87,7 @@ public class CoursResponse {
                 .body(cours.getBody())
                 .videoUrl(cours.getVideoUrl())
                 .matiereId(cours.getMatiereId())
+                .gratuit(cours.getGratuit() != null ? cours.getGratuit() : false)
                 .userId(cours.getUserId())
                 .isActive(cours.getIsActive())
                 .createdAt(cours.getCreatedAt())

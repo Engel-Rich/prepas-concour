@@ -8,5 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.UUID;
 
 public interface ConcoursSessionRepository extends JpaRepository<ConcoursSessionEntity, UUID> {
-     Page<ConcoursSessionEntity> findByConcours_Id(UUID concoursId, Pageable pageable);
+    Page<ConcoursSessionEntity> findByConcours_Id(UUID concoursId, Pageable pageable);
+    long countByIsActive(Boolean isActive);
 }

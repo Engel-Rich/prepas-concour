@@ -15,24 +15,13 @@ import java.util.UUID;
 public class UpdateConcoursUseCease {
     private final ConcoursServices concoursServices;
 
-    public ConcourResponseDTO execute(UUID id, UpdateConcoursDto dto) {
-
+    public ConcourResponseDTO execute(UUID id, String name, String description, Boolean isActive, String logoUrl) {
         final Concours concours = concoursServices.getConcoursById(id)
-                .orElseThrow(() -> new RuntimeException("Concour not found with this id"));
-        if (dto.getName() != null && !dto.getName().isEmpty()) {
-            concours.setName(dto.getName());
-        }
-        if (dto.getDescription() != null && !dto.getDescription().isEmpty()) {
-            concours.setDescription(dto.getDescription());
-        }
-        if (dto.getIsActive() !=null) {
-            concours.setIsActive(dto.getIsActive());
-        }
-        if (dto.getMetadata() != null) {
-            concours.setMetadata(dto.getMetadata());
-
-        }
-        Concours response = concoursServices.updateConcours(concours);
-        return ConcoursResponseMapper.toDto(response);
+                .orElseThrow(() -> new RuntimeException("Concours introuvable : " + id));
+        if (name        != null && !name.isBlank())        concours.setName(name);
+        if (description != null)                           concours.setDescription(description);
+        if (isActive    != null)                           concours.setIsActive(isActive);
+        if (logoUrl     != null)                           concours.setLogoUrl(logoUrl);
+        return ConcoursResponseMapper.toDto(concoursServices.updateConcours(concours));
     }
 }

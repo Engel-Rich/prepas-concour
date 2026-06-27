@@ -1,12 +1,8 @@
 package com.mutrix.prepa.presentation.subscription;
 
-import com.mutrix.prepa.application.dto.commandes.subscription.CreatePaymentServiceCommand;
 import com.mutrix.prepa.application.dto.response.subscription.PaymentServiceResponse;
-import com.mutrix.prepa.application.usecases.subscriptions.DeletePaymentServiceUseCase;
 import com.mutrix.prepa.application.usecases.subscriptions.GetPaymentServiceUseCase;
-import com.mutrix.prepa.application.usecases.subscriptions.SavePaymentServiceUseCase;
 import com.mutrix.prepa.cors.ApiResponseFormat;
-import com.mutrix.prepa.domaines.models.subscriptions.PaymentService;
 import com.mutrix.prepa.domaines.valueobjects.TransactionSens;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -14,9 +10,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,35 +20,17 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/payment-services")
 @RequiredArgsConstructor
-@Tag(name = "Services de paiement", description = "API de gestion des services de paiement")
+@Tag(name = "Services de paiement", description = "API de consultation des services de paiement")
 public class PaymentServiceController {
 
-    private final SavePaymentServiceUseCase savePaymentServiceUseCase;
     private final GetPaymentServiceUseCase getPaymentServiceUseCase;
-    private final DeletePaymentServiceUseCase deletePaymentServiceUseCase;
-
-    @Operation(summary = "Créer un service de paiement")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Service créé"),
-            @ApiResponse(responseCode = "400", description = "Données invalides",
-                    content = @Content(schema = @Schema(implementation = ApiResponseFormat.class))
-            ),
-    })
-    @PostMapping
-    public ResponseEntity<ApiResponseFormat<PaymentServiceResponse>> save(
-            @RequestBody @Valid CreatePaymentServiceCommand service) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponseFormat.fromResponseCreate(savePaymentServiceUseCase.execute(service)));
-    }
 
     @Operation(summary = "Obtenir un service par ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Service trouvé",
-                    content = @Content(schema = @Schema(implementation = ApiResponseFormat.class))
-            ),
+                    content = @Content(schema = @Schema(implementation = ApiResponseFormat.class))),
             @ApiResponse(responseCode = "404", description = "Service introuvable",
-                    content = @Content(schema = @Schema(implementation = ApiResponseFormat.class))
-            ),
+                    content = @Content(schema = @Schema(implementation = ApiResponseFormat.class))),
     })
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponseFormat<PaymentServiceResponse>> getById(@PathVariable UUID id) {
@@ -65,8 +41,7 @@ public class PaymentServiceController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Liste récupérée"),
             @ApiResponse(responseCode = "404", description = "provider id not found",
-                    content = @Content(schema = @Schema(implementation = ApiResponseFormat.class))
-            )
+                    content = @Content(schema = @Schema(implementation = ApiResponseFormat.class)))
     })
     @GetMapping("/provider/{providerId}")
     public ResponseEntity<ApiResponseFormat<List<PaymentServiceResponse>>> getByProviderId(
@@ -78,8 +53,7 @@ public class PaymentServiceController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Liste récupérée"),
             @ApiResponse(responseCode = "400", description = "Sens must be IN or OUT",
-                    content = @Content(schema = @Schema(implementation = ApiResponseFormat.class))
-            )
+                    content = @Content(schema = @Schema(implementation = ApiResponseFormat.class)))
     })
     @GetMapping("/sens/{sens}")
     public ResponseEntity<ApiResponseFormat<List<PaymentServiceResponse>>> getBySens(
@@ -94,18 +68,5 @@ public class PaymentServiceController {
     @GetMapping
     public ResponseEntity<ApiResponseFormat<List<PaymentServiceResponse>>> list() {
         return ResponseEntity.ok(ApiResponseFormat.fromResponse(getPaymentServiceUseCase.executeList()));
-    }
-
-    @Operation(summary = "Supprimer un service de paiement")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "Service supprimé"),
-            @ApiResponse(responseCode = "404", description = "Service introuvable",
-                    content = @Content(schema = @Schema(implementation = ApiResponseFormat.class))
-            ),
-    })
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
-        deletePaymentServiceUseCase.execute(id);
-        return ResponseEntity.noContent().build();
     }
 }

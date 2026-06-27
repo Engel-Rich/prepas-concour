@@ -38,6 +38,9 @@ public class CoursEntity {
     @JoinColumn(nullable = false)
     private UserEntity user;
 
+    @Column(nullable = false)
+    private Boolean gratuit = false;
+
     @Column()
     private Boolean isActive;
 

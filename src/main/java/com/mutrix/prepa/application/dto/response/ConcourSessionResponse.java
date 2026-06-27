@@ -55,6 +55,9 @@ public class ConcourSessionResponse {
     )
     private LocalDate endDate;
 
+    @Schema(description = "Montant de la session (frais d'inscription)", example = "5000.0")
+    private Double amount;
+
     @Schema(
             description = "Statut actuel de la session",
             example = "OPEN",

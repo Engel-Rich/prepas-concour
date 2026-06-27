@@ -3,6 +3,7 @@ package com.mutrix.prepa.infrastructure.notifications.channels;
 import java.util.List;
 import java.util.Map;
 
+import com.mutrix.prepa.domaines.models.NotificationModel;
 import org.springframework.stereotype.Component;
 
 import com.mutrix.prepa.domaines.notifications.NotificationsChannel;
@@ -18,10 +19,11 @@ public class EmailNotificationChannel implements NotificationsChannel {
     private final String emailProviderType = "RESEND";;
 
     @Override
-    public void sendNotification(String chanelValueElement, String title, String body, Map<String, Object> data) {
+    public void sendNotification(NotificationModel notificationModel) {
         String subject = "";
         List<String> ccEmailAddresses = null;
-        if (data != null) {
+        if (notificationModel.getMetaData() != null) {
+            Map<String, Object> data = notificationModel.getMetaData();
             subject = data.containsKey("subject") ? (String) data.get("subject") : "";
 
             Object ccObj = data.get("ccEmailAddresses");
@@ -34,9 +36,9 @@ public class EmailNotificationChannel implements NotificationsChannel {
                         .toList();
             }
         }
-        // Generate template with title and body
-        String content = "Title: " + title + "\n" + "Body: " + body;
+        // Le body contient déjà le HTML complet construit par le service appelant
+        String content = notificationModel.getBody() != null ? notificationModel.getBody() : "";
         EmailNotificationProvider emailNotificationProvider = emailNotificationFactory.create(emailProviderType);
-        emailNotificationProvider.sendEmailNotification(chanelValueElement, subject, content, ccEmailAddresses);
+        emailNotificationProvider.sendEmailNotification(notificationModel.getReceiver(), subject, content, ccEmailAddresses);
     }
 }

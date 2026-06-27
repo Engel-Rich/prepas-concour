@@ -29,7 +29,7 @@ public class BaseEntity {
 
     private LocalDateTime updatedAt;
 
-    @Column(columnDefinition = "Jsonb")
+    @Column(columnDefinition = "jsonb")
     @JdbcTypeCode(SqlTypes.JSON)
     private Map<String, Object> metadata;
 

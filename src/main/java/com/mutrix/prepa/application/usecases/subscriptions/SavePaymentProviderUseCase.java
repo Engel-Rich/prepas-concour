@@ -16,6 +16,7 @@ public class SavePaymentProviderUseCase {
         PaymentProvider provider = PaymentProvider.builder()
                 .name(dto.getName())
                 .description(dto.getDescription())
+                .logoUrl(dto.getLogoUrl())
                 .build();
         return PaymentProviderResponse.fromDomain(paymentProviderService.save(provider));
     }

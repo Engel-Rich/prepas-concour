@@ -7,18 +7,21 @@ import org.mapstruct.Mapping;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {PaymentServiceMapper.class})
 public interface TransactionMapper {
 
     @Mapping(source = "subscription.id", target = "subscriptionId")
     @Mapping(source = "user.id", target = "userId")
     @Mapping(source = "paymentService.id", target = "paymentServiceId")
+    @Mapping(target = "phoneNumber", source = "phoneNumber")
     Transaction toModel(TransactionEntity entity);
 
     @Mapping(source = "subscriptionId", target = "subscription.id")
     @Mapping(source = "userId", target = "user.id")
     @Mapping(source = "paymentServiceId", target = "paymentService.id")
+    @Mapping(target = "phoneNumber", source = "phoneNumber")
     TransactionEntity toEntity(Transaction model);
+
 
     List<Transaction> toModelList(List<TransactionEntity> entities);
 }

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
+
 @Service
 @RequiredArgsConstructor
 public class CreateCoursUseCase {
@@ -17,12 +18,12 @@ public class CreateCoursUseCase {
 
     public CoursResponse execute(CreateCoursCommand command, UUID userId) {
         Cours cours = Cours.builder()
-                .id(UUID.randomUUID())
                 .title(command.getTitle())
                 .body(command.getBody())
                 .videoUrl(command.getVideoUrl())
                 .matiereId(command.getMatiereId())
                 .userId(userId)
+                .gratuit(command.getGratuit() != null ? command.getGratuit() : false)
                 .isActive(command.getIsActive() != null ? command.getIsActive() : true)
                 .metadata(command.getMetadata())
                 .build();

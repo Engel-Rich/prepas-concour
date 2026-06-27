@@ -54,14 +54,16 @@ public class ConcoursSessionServicesImplement implements ConcoursSessionServices
 
     @Override
     public Page<ConcoursSessions> getAllConcoursSessions(Integer page, Integer size) {
-        final Pageable pageable = PageRequest.of(page, size);
+        // page est 1-indexé côté API ; PageRequest est 0-indexé
+        final Pageable pageable = PageRequest.of(Math.max(0, page - 1), size);
         final Page<ConcoursSessionEntity> concoursSessionEntityPage = concoursSessionRepository.findAll(pageable);
         return concoursSessionEntityPage.map(ConcoursSessionEntityMapper::toDomain);
     }
 
     @Override
     public Page<ConcoursSessions> getAllByConcoursId(UUID concoursId, Integer page, Integer size) {
-        final Pageable pageable = PageRequest.of(page, size);
+        // page est 1-indexé côté API ; PageRequest est 0-indexé
+        final Pageable pageable = PageRequest.of(Math.max(0, page - 1), size);
         final Page<ConcoursSessionEntity> concoursSessionEntityPage = concoursSessionRepository
                 .findByConcours_Id(concoursId, pageable);
         return concoursSessionEntityPage.map(ConcoursSessionEntityMapper::toDomain);

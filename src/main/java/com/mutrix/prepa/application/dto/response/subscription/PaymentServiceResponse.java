@@ -58,6 +58,7 @@ public class PaymentServiceResponse extends BaseResponse {
                 .regExp(ps.getRegExp())
 
                 .rate(ps.getRate())
+                .providerRate(ps.getProviderRate())
                 .build();
     }
 }

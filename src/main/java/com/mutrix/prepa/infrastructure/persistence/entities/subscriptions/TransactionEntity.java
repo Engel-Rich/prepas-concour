@@ -38,10 +38,9 @@ public class TransactionEntity extends BaseEntity {
 
     private String externalId;
 
-    private  String raisonReject;
+    private String raisonReject;
 
-    @Column(nullable = false)
-    private Boolean isActive = true;
+    private String phoneNumber;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "subscription_id", nullable = false)

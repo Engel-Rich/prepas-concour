@@ -7,8 +7,9 @@ import com.mutrix.prepa.infrastructure.persistence.data_repositories.RolesReposi
 import com.mutrix.prepa.infrastructure.persistence.entities.RoleEntity;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +26,11 @@ public class RolesServicesImplement implements RolesServices {
     public Roles getRoleByName(String name) {
         return RolesEntityMapper.maFromEntity(
                 repository.getByName(name).orElseThrow(() -> new RuntimeException("Role not found with this name")));
+    }
+
+    @Override
+    public Optional<Roles> findRoleByName(String name) {
+        return repository.getByName(name).map(RolesEntityMapper::maFromEntity);
     }
 
     // @PostConstruct

@@ -47,7 +47,8 @@ public class MatiereServicesImplement implements MatiereServices {
 
     @Override
     public Page<Matieres> getAllMatieres(Integer page, Integer size) {
-        final Pageable pageable = PageRequest.of(page, size);
+        // page est 1-indexé côté API ; PageRequest est 0-indexé
+        final Pageable pageable = PageRequest.of(Math.max(0, page - 1), size);
         final Page<MatiereEntity> matiereEntityPage = matiereRepository.findAll(pageable);
         matiereEntityPage.forEach((matiereEntity) -> {
             System.err.println(matiereEntity.toString());

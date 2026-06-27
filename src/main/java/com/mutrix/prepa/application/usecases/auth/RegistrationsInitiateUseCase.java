@@ -8,7 +8,7 @@ import com.mutrix.prepa.domaines.models.OtpSession;
 import com.mutrix.prepa.domaines.models.UserModel;
 import com.mutrix.prepa.domaines.interfaces.OtpSessionService;
 import com.mutrix.prepa.domaines.interfaces.UsersServices;
-import com.mutrix.prepa.domaines.services.NotificationService;
+import com.mutrix.prepa.infrastructure.services.NotificationServiceImplement;
 import com.mutrix.prepa.domaines.valueobjects.OtpType;
 import lombok.RequiredArgsConstructor;
 
@@ -20,7 +20,7 @@ public class RegistrationsInitiateUseCase {
 
     private final UsersServices usersServices;
     public final OtpSessionService otpSessionService;
-    private final NotificationService notificationService;
+    private final NotificationServiceImplement notificationService;
 
     public OtpResponse execute(RegisterCommand dto) {
         try {
@@ -43,7 +43,8 @@ public class RegistrationsInitiateUseCase {
                     .build();
             final OtpSession savedSession = otpSessionService.createOtpSession(otpSession, OTP);
 
-            notificationService.sendOtpSms(dto.getPhoneNumber(), OTP);
+            // Envoi de l'OTP par e-mail avec template HTML Prepa Concours
+            notificationService.sendOtpEmail(dto.getEmail(), OTP, dto.getFullName());
 
             return OtpResponse.builder()
                     .otpId(savedSession.getId())

@@ -24,7 +24,4 @@ public class PaymentProviderEntity extends BaseEntity {
     private String description;
 
     private String logoUrl;
-
-    @Column(nullable = false)
-    private Boolean isActive = true;
 }

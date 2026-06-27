@@ -39,21 +39,22 @@ public class SubscriptionServiceImplement implements SubscriptionServices {
     @Override
     public Page<Subscription> search(String userId, Integer page, Integer size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        return subscriptionRepository.findAllByUserId(userId, pageable)
+        return subscriptionRepository.findAllByUser_Id(UUID.fromString(userId), pageable)
                 .map(subscriptionMapper::toModel);
     }
 
     @Override
     public Page<Subscription> search(String userId, SubscriptionStatus status, Integer page, Integer size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        return subscriptionRepository.findAllByUser_IdAndStatus(userId, status, pageable)
+        return subscriptionRepository.findAllByUser_IdAndStatus(UUID.fromString(userId), status, pageable)
                 .map(subscriptionMapper::toModel);
     }
 
     @Override
     public Page<Subscription> search(String userId, String concoursSessionId, Integer page, Integer size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        return subscriptionRepository.findAllByUser_IdAndConcoursSession_Id(userId, concoursSessionId, pageable)
+        return subscriptionRepository.findAllByUser_IdAndSessions_Id(
+                UUID.fromString(userId), UUID.fromString(concoursSessionId), pageable)
                 .map(subscriptionMapper::toModel);
     }
 
@@ -67,7 +68,29 @@ public class SubscriptionServiceImplement implements SubscriptionServices {
     @Override
     public Page<Subscription> search(String userId, String concoursSessionId, SubscriptionStatus status, Integer page, Integer size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        return subscriptionRepository.findAllByUser_IdAndConcoursSession_IdAndStatus(userId, concoursSessionId, status, pageable)
+        return subscriptionRepository.findAllByUser_IdAndSessions_IdAndStatus(
+                UUID.fromString(userId), UUID.fromString(concoursSessionId), status, pageable)
+                .map(subscriptionMapper::toModel);
+    }
+
+    @Override
+    public Page<Subscription> searchBySession(UUID sessionId, Integer page, Integer size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        return subscriptionRepository.findAllBySessions_Id(sessionId, pageable)
+                .map(subscriptionMapper::toModel);
+    }
+
+    @Override
+    public Page<Subscription> searchByConcours(UUID concoursId, Integer page, Integer size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        return subscriptionRepository.findAllBySessions_Concours_Id(concoursId, pageable)
+                .map(subscriptionMapper::toModel);
+    }
+
+    @Override
+    public Page<Subscription> searchByUser(UUID userId, Integer page, Integer size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        return subscriptionRepository.findAllByUser_Id(userId, pageable)
                 .map(subscriptionMapper::toModel);
     }
 

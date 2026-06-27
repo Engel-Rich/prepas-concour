@@ -32,6 +32,7 @@ public class UpdateCoursUseCase {
                 .videoUrl(command.getVideoUrl() != null ? command.getVideoUrl() : existing.getVideoUrl())
                 .matiereId(command.getMatiereId() != null ? command.getMatiereId() : existing.getMatiereId())
                 .userId(existing.getUserId())
+                .gratuit(command.getGratuit() != null ? command.getGratuit() : existing.getGratuit())
                 .isActive(command.getIsActive() != null ? command.getIsActive() : existing.getIsActive())
                 .metadata(command.getMetadata() != null ? command.getMetadata() : existing.getMetadata())
                 .createdAt(existing.getCreatedAt())

@@ -2,6 +2,7 @@ package com.mutrix.prepa.infrastructure.notifications.channels;
 
 import java.util.Map;
 
+import com.mutrix.prepa.domaines.models.NotificationModel;
 import org.springframework.stereotype.Component;
 
 import com.mutrix.prepa.domaines.notifications.NotificationsChannel;
@@ -18,11 +19,13 @@ public class WhatsAppNotificationChannel implements NotificationsChannel {
     private final WhatsAppNotificationFactory whatsAppNotificationFactory;
 
     @Override
-    public void sendNotification(String chanelValueElement, String title, String body, Map<String, Object> data) {
+    public void sendNotification(NotificationModel notification) {
         // Generate template with title and body
-        String content = "Title: " + title + "\n" + "Body: " + body;
+        String content = "Title: " + notification.getTitle() + "\n" + "Body: " + notification.getBody();
         WhatsAppNotificationProvider whatsAppNotificationProvider = whatsAppNotificationFactory
                 .create(whatsAppProviderType);
-        whatsAppNotificationProvider.sendWhatsAppNotification(chanelValueElement, content);
+        notification.getReceiver().forEach((chanelValueElement)->{
+            whatsAppNotificationProvider.sendWhatsAppNotification(chanelValueElement, content);
+        });
     }
 }

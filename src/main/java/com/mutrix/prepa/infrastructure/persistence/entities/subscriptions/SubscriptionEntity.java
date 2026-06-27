@@ -26,14 +26,11 @@ public class SubscriptionEntity extends BaseEntity {
     @Column(nullable = false)
     private SubscriptionStatus status;
 
-    @Column(nullable = false)
-    private Boolean isActive = true;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "session_id", nullable = false)
     private ConcoursSessionEntity sessions;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private UserEntity users;
+    private UserEntity user;
 }

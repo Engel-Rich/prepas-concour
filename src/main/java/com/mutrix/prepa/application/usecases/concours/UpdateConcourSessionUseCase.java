@@ -54,6 +54,9 @@ public class UpdateConcourSessionUseCase {
         if (dto.getIsActive() != null) {
             sessions.setIsActive(dto.getIsActive());
         }
+        if (dto.getAmount() != null) {
+            sessions.setAmount(dto.getAmount());
+        }
         ConcoursSessions sessions1 = concoursSessionServices.updateConcoursSession(sessions);
         final Concours concours = concoursServices.getConcoursById(sessions1.getConcoursId())
                 .orElseThrow(() -> new RuntimeException("Concour not found with this id"));

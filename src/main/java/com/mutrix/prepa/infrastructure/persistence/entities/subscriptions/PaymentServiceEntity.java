@@ -34,9 +34,6 @@ public class PaymentServiceEntity extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private TransactionSens sens;
 
-    @Column(nullable = false)
-    private Boolean isActive = true;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "provider_id", nullable = false)
     private PaymentProviderEntity provider;

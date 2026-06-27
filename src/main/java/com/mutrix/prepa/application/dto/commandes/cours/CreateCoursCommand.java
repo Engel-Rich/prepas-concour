@@ -47,6 +47,8 @@ public class CreateCoursCommand {
     )
     private UUID matiereId;
 
+    private Boolean gratuit = false;
+
     private Boolean isActive = true;
 
     private Map<String, Object> metadata;

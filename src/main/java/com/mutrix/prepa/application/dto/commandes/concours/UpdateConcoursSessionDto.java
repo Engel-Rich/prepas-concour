@@ -40,6 +40,12 @@ public class UpdateConcoursSessionDto {
     private LocalDate endDate;
 
     @Schema(
+            description = "Montant (prix) de la session en FCFA",
+            example = "15000"
+    )
+    private Double amount;
+
+    @Schema(
             description = "Statut actuel de la session",
             example = "OPEN"
     )

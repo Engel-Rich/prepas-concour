@@ -9,3 +9,18 @@ run-db:
 stop-db:
 	docker stop prepa-concour-postgres || true
 	docker rm prepa-concour-postgres || true
+
+open-bucket:
+	docker run \
+		-p 9000:9000 \
+		-p 9001:9001 \
+		--name minio_server \
+		-v minio_data:/data \
+		-e MINIO_ROOT_USER=prepa-db-root \
+		-e MINIO_ROOT_PASSWORD=prepa-db-pass \
+		-d quay.io/minio/minio \
+		server --console-address ":9001" /data
+
+close-bucket:
+	docker stop minio_server || true
+	docker rm minio_server || true

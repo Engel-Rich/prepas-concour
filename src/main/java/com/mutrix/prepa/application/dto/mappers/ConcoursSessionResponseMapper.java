@@ -23,6 +23,7 @@ public final class ConcoursSessionResponseMapper {
                 .concours(ConcoursResponseMapper.toDto(concours))
                 .name(session.getName())
                 .description(session.getDescription())
+                .amount(session.getAmount())
                 .startDate(session.getStartDate())
                 .endDate(session.getEndDate())
                 .status(session.getStatus())

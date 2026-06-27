@@ -13,14 +13,13 @@ import lombok.RequiredArgsConstructor;
 public class CreateConcoursUseCase {
     private final ConcoursServices concoursServices;
 
-    public ConcourResponseDTO execute(CreateConcoursDto createConcoursDto){
-        final  Concours concours = Concours.
-                builder().
-                name(createConcoursDto.getName()).
-                metadata(createConcoursDto.getMetadata()).
-                description(createConcoursDto.getDescription()).
-                build();
-        final Concours result = concoursServices.createConcours(concours);
-        return ConcoursResponseMapper.toDto(result);
+    public ConcourResponseDTO execute(String name, String description, Boolean isActive, String logoUrl) {
+        final Concours concours = Concours.builder()
+                .name(name)
+                .description(description)
+                .logoUrl(logoUrl)
+                .isActive(isActive != null ? isActive : true)
+                .build();
+        return ConcoursResponseMapper.toDto(concoursServices.createConcours(concours));
     }
 }

@@ -48,6 +48,8 @@ public class UpdateCoursCommand {
             example = "true",
             nullable = true
     )
+    private Boolean gratuit;
+
     private Boolean isActive;
 
     @Schema(

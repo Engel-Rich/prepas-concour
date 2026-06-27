@@ -11,11 +11,11 @@ import java.util.List;
 public interface SubscriptionMapper {
 
     @Mapping(source = "sessions.id", target = "concoursSessionId")
-    @Mapping(source = "users.id", target = "userId")
+    @Mapping(source = "user.id", target = "userId")
     Subscription toModel(SubscriptionEntity entity);
 
     @Mapping(source = "concoursSessionId", target = "sessions.id")
-    @Mapping(source = "userId", target = "users.id")
+    @Mapping(source = "userId", target = "user.id")
     SubscriptionEntity toEntity(Subscription model);
 
     List<Subscription> toModelList(List<SubscriptionEntity> entities);

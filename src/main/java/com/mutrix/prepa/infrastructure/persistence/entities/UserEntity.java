@@ -14,7 +14,7 @@ import org.hibernate.type.SqlTypes;
 
 
 @Entity
-@Table(name = "UserModel")
+@Table(name = "Users")
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -75,12 +75,12 @@ public class UserEntity {
     @JdbcTypeCode(SqlTypes.JSON)
     private String metadata;
 
-    @PostUpdate
+    @PreUpdate
     public void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
 
-    @PostPersist
+    @PrePersist
     public void onCreate() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();

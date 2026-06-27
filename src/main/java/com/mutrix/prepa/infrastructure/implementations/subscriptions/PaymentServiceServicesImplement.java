@@ -18,7 +18,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class PaymentServiceServicesImplement implements PaymentServiceService {
     private final PaymentServiceRepository paymentServiceRepository;
-    private PaymentServiceMapper paymentServiceMapper;
+    private final PaymentServiceMapper paymentServiceMapper;
 
 
     @Override

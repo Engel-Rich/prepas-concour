@@ -34,6 +34,12 @@ public class CreateSessionConcoursDto {
     private LocalDate endDate;
 
     @Schema(
+            description = "Montant (prix) de la session en FCFA",
+            example = "15000"
+    )
+    private Double amount;
+
+    @Schema(
             description = "Informations supplémentaires sous format JSON",
             example = "{\"lieu\":\"Yaoundé\", \"capacite\":200}"
     )

@@ -131,11 +131,24 @@
         </dependency>
 
         <!--        Http client reactor-->
-<!--        <dependency>-->
-<!--            <groupId>io.projectreactor.netty</groupId>-->
-<!--            <artifactId>reactor-netty-http</artifactId>-->
-<!--            <version>1.1.23</version> &lt;!&ndash; vérifie la dernière version disponible &ndash;&gt;-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>io.projectreactor.netty</groupId>-->
+        <!--            <artifactId>reactor-netty-http</artifactId>-->
+        <!--            <version>1.1.23</version> &lt;!&ndash; vérifie la dernière version disponible &ndash;&gt;-->
+        <!--        </dependency>-->
+
+        <dependency>
+            <groupId>io.minio</groupId>
+            <artifactId>minio</artifactId>
+            <version>8.5.2</version>
+        </dependency>
+
+        <!-- Resend Java SDK -->
+        <dependency>
+            <groupId>com.resend</groupId>
+            <artifactId>resend-java</artifactId>
+            <version>3.1.0</version>
+        </dependency>
 
     </dependencies>
 
