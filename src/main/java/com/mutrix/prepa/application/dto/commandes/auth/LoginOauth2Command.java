@@ -5,13 +5,20 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-public  class  LoginOauth2Command {
+@Setter
+public class LoginOauth2Command {
 
-    @NotBlank(message = "OAuth2 provider token is required")
-    @Schema(description = "Le token d'authentification fourni par le fournisseur OAuth2", example = "ya29.a0AfH6SMD...", requiredMode = Schema.RequiredMode.REQUIRED)
-    private  String oAuth2ProviderToken;
+    @NotBlank(message = "Le Firebase UID est requis")
+    @Schema(
+        description = "UID Firebase de l'utilisateur (credential.user.uid après signInWithPopup). " +
+                      "Le Firebase ID Token doit être envoyé dans le header Authorization: Bearer <idToken>.",
+        example = "C6rdlSeg2vhXbqXpB0jbXGyxYv02",
+        requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    private String firebaseUid;
 }

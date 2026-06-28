@@ -143,6 +143,9 @@ public class FirebaseAuthFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getServletPath();
+        // /auth/login/oauth2 : le Bearer ID Token est vérifié ici pour identifier l'appelant.
+        // Tous les autres /auth/** sont publics (pas de Bearer requis).
+        if (path.equals("/auth/login/oauth2")) return false;
         return path.startsWith("/auth")
                 || path.startsWith("/swagger-ui")
                 || path.startsWith("/api-docs")

@@ -24,43 +24,71 @@ public class LoginByOAuth2ProviderUseCase {
 
     public UserResponse execute(LoginOauth2Command dto) {
         try {
-            final Roles roles = rolesServices.getRoleByName("USER");
-            FirebaseUser firebaseUser = firebaseService.verifyIdToken(dto.getOAuth2ProviderToken());
-            var userOpt = usersServices.getUserByFirebaseUid(firebaseUser.getUid());
+            final Roles userRole = rolesServices.getRoleByName("USER");
+
+            // 1. Récupérer les données Firebase via l'UID fourni dans le body.
+            //    L'ID token est vérifié en amont par FirebaseAuthFilter (header Authorization).
+            FirebaseUser firebaseUser = firebaseService.getUserByUid(dto.getFirebaseUid());
+
+            // 2. Chercher l'utilisateur par son UID Firebase
+            var userOpt = usersServices.getUserByFirebaseUid(dto.getFirebaseUid());
+
             if (userOpt.isEmpty()) {
-                UserModel newUser = getUsersFromFirebaseUser(firebaseUser, roles);
-                UserModel savedUser = usersServices.createUser(newUser);
-                return UserResponseMapper.mapFromUser(savedUser);
+                // Nouvel utilisateur OAuth2 — pas encore de compte dans le système
+                UserModel newUser = buildFromFirebase(firebaseUser, userRole);
+                UserModel saved = usersServices.createUser(newUser);
+                return UserResponseMapper.mapFromUser(saved);
             }
-            UserModel newUser = getNewUser(userOpt.get(), firebaseUser);
-            UserModel updatedUser = usersServices.updateUser(newUser);
-            return UserResponseMapper.mapFromUser(updatedUser);
+
+            // 3. Utilisateur existant — mettre à jour ses données Firebase
+            UserModel updated = usersServices.updateUser(mergeFromFirebase(userOpt.get(), firebaseUser));
+            return UserResponseMapper.mapFromUser(updated);
+
         } catch (Exception e) {
             throw new RuntimeException("Failed to login with OAuth2 provider: " + e.getMessage());
         }
     }
 
-    private static UserModel getNewUser(UserModel userOpt, FirebaseUser firebaseUser) {
-        userOpt.setEmail(firebaseUser.getEmail() != null ? firebaseUser.getEmail() : userOpt.getEmail());
-        userOpt.setPhone(firebaseUser.getPhoneNumber() != null ? firebaseUser.getPhoneNumber() : userOpt.getPhone());
-        userOpt.setProfilePictureUrl(
-                firebaseUser.getPhotoUrl() != null ? firebaseUser.getPhotoUrl() : userOpt.getProfilePictureUrl());
-        userOpt.setName(userOpt.getName() == null || userOpt.getName().isEmpty() ? firebaseUser.getDisplayName()
-                : userOpt.getName());
-        userOpt.setMetadata(firebaseUser.getMetadata());
-        return userOpt;
-    }
+    // ── Helpers ──────────────────────────────────────────────────────────────
 
-    private static UserModel getUsersFromFirebaseUser(FirebaseUser firebaseUser, Roles role) {
+    /** Construit un UserModel depuis les données Firebase (premier login OAuth2). */
+    private static UserModel buildFromFirebase(FirebaseUser fb, Roles role) {
         return UserModel.builder()
-                .email(firebaseUser.getEmail())
-                .name(firebaseUser.getDisplayName())
-                .phone(firebaseUser.getPhoneNumber())
-                .firebaseUid(firebaseUser.getUid())
-                .metadata(firebaseUser.getMetadata())
-                .hasEmailVerified(firebaseUser.getEmailVerified())
-                .hasPhoneVerified(firebaseUser.getPhoneNumber() != null && !firebaseUser.getPhoneNumber().isEmpty())
+                .email(fb.getEmail())
+                .name(fb.getDisplayName())
+                .phone(fb.getPhoneNumber())
+                .firebaseUid(fb.getUid())
+                .metadata(fb.getMetadata())
+                .hasEmailVerified(Boolean.TRUE.equals(fb.getEmailVerified()))
+                .hasPhoneVerified(fb.getPhoneNumber() != null && !fb.getPhoneNumber().isBlank())
                 .roles(List.of(role))
                 .build();
+    }
+
+    /**
+     * Merge les données Firebase sur un utilisateur existant.
+     * — L'email Firebase est mis à jour (source de vérité = provider OAuth2)
+     * — Le nom n'est écrasé que s'il était vide en base
+     * — Le phone Firebase est ajouté seulement s'il était absent en base
+     * — La photo de profil est toujours mise à jour
+     * — Le passwordHash n'est jamais touché
+     */
+    private static UserModel mergeFromFirebase(UserModel user, FirebaseUser fb) {
+        if (fb.getEmail() != null)
+            user.setEmail(fb.getEmail());
+
+        if ((user.getName() == null || user.getName().isBlank()) && fb.getDisplayName() != null)
+            user.setName(fb.getDisplayName());
+
+        if ((user.getPhone() == null || user.getPhone().isBlank()) && fb.getPhoneNumber() != null)
+            user.setPhone(fb.getPhoneNumber());
+
+        if (fb.getPhotoUrl() != null)
+            user.setProfilePictureUrl(fb.getPhotoUrl());
+
+        if (fb.getMetadata() != null)
+            user.setMetadata(fb.getMetadata());
+
+        return user;
     }
 }
