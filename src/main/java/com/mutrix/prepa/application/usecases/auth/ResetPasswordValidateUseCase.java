@@ -38,7 +38,7 @@ public class ResetPasswordValidateUseCase {
 
         // 3. Hasher et mettre à jour le mot de passe en base
         if(passwordEncoder.matches(dto.getNewPassword(), userModel.getPasswordHash())){
-            throw new RuntimeException("Ce mot de passe est deja utilisee, bien vouloir choisir un nouveaux mot de passe");
+            throw new RuntimeException("Ce mot de passe est déjà utilisé, bien vouloir choisir un nouveau mot de passe");
         }
         String newHash = passwordEncoder.encode(dto.getNewPassword());
         userModel.setPasswordHash(newHash);
