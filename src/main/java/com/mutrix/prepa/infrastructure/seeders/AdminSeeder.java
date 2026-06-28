@@ -25,10 +25,13 @@ import java.util.Optional;
 @Order(2)
 public class AdminSeeder implements ApplicationRunner {
 
-    private static final String ADMIN_EMAIL    = "admin@mutrix.org";
-    private static final String ADMIN_PASSWORD = "@dmin123.";
-    private static final String ADMIN_NAME     = "Administrateur Mutrix";
-    private static final String ADMIN_ROLE     = "ADMIN";
+    private static final String ADMIN_ROLE = "ADMIN";
+
+    /** Liste des administrateurs à seeder au démarrage */
+    private static final List<AdminEntry> ADMINS = List.of(
+            new AdminEntry("admin@mutrix.org",                    "@dmin123.",        "Administrateur Mutrix"),
+            new AdminEntry("engelbertrichelieutsinda@gmail.com",  "@endev-agc.com",   "Engelbert Richelieu Tsinda")
+    );
 
     private final UsersServices   usersServices;
     private final RolesServices   rolesServices;
@@ -38,79 +41,78 @@ public class AdminSeeder implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) {
 
-        // ── 1. S'assurer que le rôle ADMIN existe ────────────────────────────
+        // S'assurer que le rôle ADMIN existe
         Roles adminRole = rolesServices.findRoleByName(ADMIN_ROLE)
                 .orElseGet(() -> {
                     log.warn("Rôle '{}' absent en base, création...", ADMIN_ROLE);
                     return rolesServices.saveRoles(new Roles(ADMIN_ROLE));
                 });
 
-        // ── 2. Chercher l'utilisateur admin ──────────────────────────────────
-        Optional<UserModel> existingOpt = usersServices.getUserByEmail(ADMIN_EMAIL);
+        for (AdminEntry entry : ADMINS) {
+            seedAdmin(entry, adminRole);
+        }
+    }
+
+    private void seedAdmin(AdminEntry entry, Roles adminRole) {
+
+        Optional<UserModel> existingOpt = usersServices.getUserByEmail(entry.email());
 
         if (existingOpt.isPresent()) {
             UserModel existing = existingOpt.get();
-
-            boolean hasAdminRole = existing.getRoles() != null &&
+            boolean hasRole = existing.getRoles() != null &&
                     existing.getRoles().stream().anyMatch(r -> ADMIN_ROLE.equals(r.getName()));
 
-            if (hasAdminRole) {
-                log.info("Admin '{}' existe déjà avec le rôle {}, seeder ignoré.", ADMIN_EMAIL, ADMIN_ROLE);
+            if (hasRole) {
+                log.info("Admin '{}' existe déjà avec le rôle {}, seeder ignoré.", entry.email(), ADMIN_ROLE);
                 return;
             }
 
-            // ── 2b. User existe mais sans le rôle ADMIN → on l'ajoute ────────
-            log.warn("Admin '{}' existe mais n'a pas le rôle {} — assignation...", ADMIN_EMAIL, ADMIN_ROLE);
-
-            List<Roles> updatedRoles = new ArrayList<>();
-            if (existing.getRoles() != null) {
-                updatedRoles.addAll(existing.getRoles());
-            }
-            updatedRoles.add(adminRole);
-            existing.setRoles(updatedRoles);
-
+            log.warn("Admin '{}' existe mais sans le rôle {} — assignation...", entry.email(), ADMIN_ROLE);
+            List<Roles> roles = new ArrayList<>();
+            if (existing.getRoles() != null) roles.addAll(existing.getRoles());
+            roles.add(adminRole);
+            existing.setRoles(roles);
             usersServices.updateUser(existing);
-            log.info("Rôle {} assigné à '{}' avec succès.", ADMIN_ROLE, ADMIN_EMAIL);
+            log.info("Rôle {} assigné à '{}' avec succès.", ADMIN_ROLE, entry.email());
             return;
         }
 
-        // ── 3. Créer l'utilisateur admin (premier démarrage) ─────────────────
-        log.info("Création de l'administrateur '{}'...", ADMIN_EMAIL);
+        log.info("Création de l'administrateur '{}'...", entry.email());
 
         FirebaseUser firebaseUser = null;
         try {
-            firebaseUser = firebaseService.getUserByEmail(ADMIN_EMAIL);
-        } catch (Exception ignored) {
-            // user Firebase inexistant → on le créera ci-dessous
-        }
+            firebaseUser = firebaseService.getUserByEmail(entry.email());
+        } catch (Exception ignored) {}
 
         if (firebaseUser == null) {
             firebaseUser = firebaseService.createUser(CreateFirebaseUserDto.builder()
-                    .email(ADMIN_EMAIL)
-                    .password(ADMIN_PASSWORD)
-                    .displayName(ADMIN_NAME)
+                    .email(entry.email())
+                    .password(entry.password())
+                    .displayName(entry.displayName())
                     .emailVerified(true)
                     .disabled(false)
                     .build());
         }
 
         if (firebaseUser == null) {
-            log.error("Impossible de créer l'utilisateur Firebase pour l'admin — seeder abandonné.");
+            log.error("Impossible de créer l'utilisateur Firebase pour '{}' — ignoré.", entry.email());
             return;
         }
 
-        String passwordHash = passwordEncoder.encode(ADMIN_PASSWORD);
         UserModel admin = UserModel.builder()
                 .firebaseUid(firebaseUser.getUid())
-                .name(ADMIN_NAME)
-                .email(ADMIN_EMAIL)
-                .passwordHash(passwordHash)
+                .name(entry.displayName())
+                .email(entry.email())
+                .passwordHash(passwordEncoder.encode(entry.password()))
                 .roles(List.of(adminRole))
                 .isActive(true)
                 .hasEmailVerified(true)
                 .hasPhoneVerified(false)
                 .build();
+
         usersServices.createUser(admin);
-        log.info("Administrateur '{}' créé avec succès avec le rôle {}.", ADMIN_EMAIL, ADMIN_ROLE);
+        log.info("Administrateur '{}' créé avec succès.", entry.email());
     }
+
+    private record AdminEntry(String email, String password, String displayName) {}
 }

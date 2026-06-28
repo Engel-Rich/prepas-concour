@@ -32,8 +32,10 @@ public class AuthController {
     private final CompleteLoginUseCase completeLoginUseCase;
     private final LoginByOAuth2ProviderUseCase loginByOAuth2ProviderUseCase;
     private final ResendOtpUseCase resendOtpUseCase;
+    private final ResetPasswordInitiateUseCase resetPasswordInitiateUseCase;
+    private final ResetPasswordValidateUseCase resetPasswordValidateUseCase;
 
-    @Operation(summary = "Initialise la connexion", description = "Envoie un code OTP par email")
+    @Operation(summary = "Initialise la connexion", description = "Vérifie le mot de passe et envoie un code OTP via le canal choisi (EMAIL par défaut si email fourni, SMS sinon)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OTP envoyé avec succès"),
             @ApiResponse(responseCode = "400", description = "Données invalides ou utilisateur introuvable"),
@@ -44,7 +46,7 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponseFormat.fromResponse(response));
     }
 
-    @Operation(summary = "Initialise l'inscription", description = "Envoie un code OTP par SMS pour l'inscription")
+    @Operation(summary = "Initialise l'inscription", description = "Envoie un code OTP via le canal choisi (EMAIL par défaut si email fourni, SMS sinon)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OTP envoyé avec succès", content = @Content(mediaType = "application/json", schema = @Schema(implementation = OtpResponse.class))),
             @ApiResponse(responseCode = "400", description = "Données invalides ou utilisateur déjà existant")
@@ -54,7 +56,6 @@ public class AuthController {
             @RequestBody(required = true) @Valid RegisterCommand command) {
         OtpResponse response = this.registrationsInitiateUseCase.execute(command);
         return ResponseEntity.ok(ApiResponseFormat.fromResponse(response));
-
     }
 
     @Operation(summary = "Complète l'inscription", description = "Valide le code OTP et crée un compte utilisateur")
@@ -78,7 +79,6 @@ public class AuthController {
     public ResponseEntity<ApiResponseFormat<AuthResponse>> completeLogin(@RequestBody(required = true) @Valid LoginCompletionDto command) {
         AuthResponse response = this.completeLoginUseCase.execute(command);
         return ResponseEntity.ok(ApiResponseFormat.fromResponse(response));
-
     }
 
     @Operation(summary = "Connexion via un fournisseur OAuth2", description = "Permet à l'utilisateur de se connecter en utilisant un fournisseur OAuth2 (Google, Facebook, etc.)")
@@ -89,10 +89,8 @@ public class AuthController {
     @PostMapping("/login/oauth2")
     public ResponseEntity<ApiResponseFormat<UserResponse>> loginByOAuth2Provider(
             @RequestBody(required = true) @Valid LoginOauth2Command command) {
-
         UserResponse response = this.loginByOAuth2ProviderUseCase.execute(command);
         return ResponseEntity.ok(ApiResponseFormat.fromResponse(response));
-
     }
 
     @Operation(summary = "Renvoyer le code OTP", description = "Permet de renvoyer un code OTP à l'utilisateur")
@@ -119,4 +117,34 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponseFormat.fromResponse(response));
     }
 
+    // ── Réinitialisation de mot de passe ─────────────────────────────────────
+
+    @Operation(
+        summary = "Initier la réinitialisation du mot de passe",
+        description = "Envoie un code OTP via le canal choisi (EMAIL par défaut si email fourni, SMS sinon). " +
+                      "L'utilisateur doit exister en base.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OTP envoyé avec succès"),
+            @ApiResponse(responseCode = "400", description = "Utilisateur introuvable ou données invalides")
+    })
+    @PostMapping("/reset-password/initiate")
+    public ResponseEntity<ApiResponseFormat<OtpResponse>> resetPasswordInitiate(
+            @RequestBody(required = true) @Valid ResetPasswordInitiateDto dto) {
+        OtpResponse response = resetPasswordInitiateUseCase.execute(dto);
+        return ResponseEntity.ok(ApiResponseFormat.fromResponse(response));
+    }
+
+    @Operation(
+        summary = "Valider le code OTP et définir le nouveau mot de passe",
+        description = "Valide le code OTP reçu lors de l'initiation, met à jour le mot de passe en base et sur Firebase.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Mot de passe réinitialisé avec succès"),
+            @ApiResponse(responseCode = "400", description = "Code OTP invalide, expiré ou données incorrectes")
+    })
+    @PostMapping("/reset-password/validate")
+    public ResponseEntity<ApiResponseFormat<Void>> resetPasswordValidate(
+            @RequestBody(required = true) @Valid ResetPasswordValidateDto dto) {
+        resetPasswordValidateUseCase.execute(dto);
+        return ResponseEntity.ok(ApiResponseFormat.fromResponse(null));
+    }
 }

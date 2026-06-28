@@ -1,5 +1,6 @@
 package com.mutrix.prepa.application.dto.commandes.auth;
 
+import com.mutrix.prepa.domaines.valueobjects.NotificationType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
@@ -27,4 +28,7 @@ public class RegisterCommand {
     @NotNull(message = "Full name cannot be null")
     @Schema(description = "Le nom complet de l'utilisateur", example = "John Doe", requiredMode = Schema.RequiredMode.REQUIRED)
     private String fullName;
+
+    @Schema(description = "Canal d'envoi du code OTP. Si omis : EMAIL si l'email est fourni, SMS sinon.", example = "EMAIL")
+    private NotificationType notificationType;
 }

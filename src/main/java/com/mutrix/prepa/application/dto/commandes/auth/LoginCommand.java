@@ -1,5 +1,6 @@
 package com.mutrix.prepa.application.dto.commandes.auth;
 
+import com.mutrix.prepa.domaines.valueobjects.NotificationType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
@@ -21,8 +22,11 @@ public class LoginCommand {
     private String email;
 
     @NotNull(message = "Password is required")
-    @Schema(description = "Le mot de passe de l'utilisateur", example = "123456", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "Le mot de passe de l'utilisateur (code PIN numérique)", example = "123456", requiredMode = Schema.RequiredMode.REQUIRED)
     private Long password;
+
+    @Schema(description = "Canal d'envoi du code OTP. Si omis : EMAIL si l'email est fourni, SMS sinon.", example = "EMAIL")
+    private NotificationType notificationType;
 
     @AssertTrue(message = "Either phone number or email must be provided")
     public boolean isContactInfoProvided() {
