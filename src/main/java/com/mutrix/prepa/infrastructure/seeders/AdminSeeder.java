@@ -29,7 +29,7 @@ public class AdminSeeder implements ApplicationRunner {
 
     /** Liste des administrateurs à seeder au démarrage */
     private static final List<AdminEntry> ADMINS = List.of(
-            new AdminEntry("admin@mutrix.org",                    "@dmin123.",        "Administrateur Mutrix"),
+            new AdminEntry("ondouel@gmail.com",                    "@dmin123.",        "Administrateur Mutrix"),
             new AdminEntry("engelbertrichelieutsinda@gmail.com",  "@endev-agc.com",   "Engelbert Richelieu Tsinda")
     );
 
@@ -72,7 +72,7 @@ public class AdminSeeder implements ApplicationRunner {
             if (existing.getRoles() != null) roles.addAll(existing.getRoles());
             roles.add(adminRole);
             existing.setRoles(roles);
-            usersServices.updateUser(existing);
+            usersServices.updateUser(existing, null);
             log.info("Rôle {} assigné à '{}' avec succès.", ADMIN_ROLE, entry.email());
             return;
         }

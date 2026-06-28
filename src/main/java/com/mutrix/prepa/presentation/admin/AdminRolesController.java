@@ -122,7 +122,7 @@ public class AdminRolesController {
             List<Roles> roles = new ArrayList<>(user.getRoles() != null ? user.getRoles() : List.of());
             roles.add(role);
             user.setRoles(roles);
-            user = usersServices.updateUser(user);
+            user = usersServices.updateUser(user, null);
         }
 
         return ResponseEntity.ok(ApiResponseFormat.fromResponse(UserResponseMapper.mapFromUser(user)));
@@ -144,7 +144,7 @@ public class AdminRolesController {
                     .filter(r -> !r.getId().equals(roleId))
                     .collect(java.util.stream.Collectors.toCollection(ArrayList::new));
             user.setRoles(roles);
-            user = usersServices.updateUser(user);
+            user = usersServices.updateUser(user, null);
         }
 
         return ResponseEntity.ok(ApiResponseFormat.fromResponse(UserResponseMapper.mapFromUser(user)));

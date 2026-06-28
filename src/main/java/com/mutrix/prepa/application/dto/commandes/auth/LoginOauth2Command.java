@@ -1,5 +1,6 @@
 package com.mutrix.prepa.application.dto.commandes.auth;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -13,6 +14,7 @@ import lombok.Setter;
 @Setter
 public class LoginOauth2Command {
 
+    @JsonProperty("firebaseUid")
     @NotBlank(message = "Le Firebase UID est requis")
     @Schema(
         description = "UID Firebase de l'utilisateur (credential.user.uid après signInWithPopup). " +

@@ -2,6 +2,7 @@ package com.mutrix.prepa.infrastructure.implementations;
 
 import com.mutrix.prepa.domaines.models.UserModel;
 import com.mutrix.prepa.domaines.interfaces.UsersServices;
+import com.mutrix.prepa.domaines.services.FirebaseService;
 import com.mutrix.prepa.infrastructure.mappers.UserEntityMapper;
 import com.mutrix.prepa.infrastructure.persistence.data_repositories.UserRepository;
 import com.mutrix.prepa.infrastructure.persistence.entities.UserEntity;
@@ -20,6 +21,7 @@ import java.util.UUID;
 public class UsersServiceImplement implements UsersServices {
 
     private final UserRepository userRepository;
+    private final FirebaseService firebaseService;
 
     @Override
     public UserModel createUser(UserModel userModel) {
@@ -52,7 +54,11 @@ public class UsersServiceImplement implements UsersServices {
     }
 
     @Override
-    public UserModel updateUser(UserModel userModel) {
+    public UserModel updateUser(UserModel userModel, String plainPassword) {
+        // Vérification d'unicité Firebase + mise à jour Firebase avant toute modification locale
+        if (userModel.getFirebaseUid() != null) {
+            firebaseService.syncUserToFirebase(userModel, plainPassword);
+        }
         UserEntity response = userRepository.save(UserEntityMapper.toEntity(userModel));
         return UserEntityMapper.toDomainModel(response);
     }

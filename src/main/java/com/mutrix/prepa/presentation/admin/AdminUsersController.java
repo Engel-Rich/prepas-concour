@@ -99,7 +99,7 @@ public class AdminUsersController {
         if (dto.getPhone()    != null && !dto.getPhone().isBlank())    user.setPhone(dto.getPhone());
         if (dto.getIsActive() != null)                                  user.setIsActive(dto.getIsActive());
 
-        UserModel saved = usersServices.updateUser(user);
+        UserModel saved = usersServices.updateUser(user, null);
         return ResponseEntity.ok(ApiResponseFormat.fromResponse(UserResponseMapper.mapFromUser(saved)));
     }
 

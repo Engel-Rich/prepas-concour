@@ -41,7 +41,7 @@ public class LoginByOAuth2ProviderUseCase {
             }
 
             // 3. Utilisateur existant — mettre à jour ses données Firebase
-            UserModel updated = usersServices.updateUser(mergeFromFirebase(userOpt.get(), firebaseUser));
+            UserModel updated = usersServices.updateUser(mergeFromFirebase(userOpt.get(), firebaseUser), null);
             return UserResponseMapper.mapFromUser(updated);
 
         } catch (Exception e) {

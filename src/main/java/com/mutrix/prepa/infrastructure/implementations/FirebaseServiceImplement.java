@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.google.firebase.FirebaseException;
+import com.google.firebase.auth.AuthErrorCode;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
@@ -15,6 +16,7 @@ import com.google.firebase.auth.UserInfo;
 import com.google.firebase.auth.UserRecord;
 import com.mutrix.prepa.application.dto.commandes.users.CreateFirebaseUserDto;
 import com.mutrix.prepa.domaines.models.FirebaseUser;
+import com.mutrix.prepa.domaines.models.UserModel;
 import com.mutrix.prepa.domaines.services.FirebaseService;
 
 import lombok.RequiredArgsConstructor;
@@ -84,20 +86,18 @@ public class FirebaseServiceImplement implements FirebaseService {
     public FirebaseUser updateUser(String uid, CreateFirebaseUserDto dto) {
         try {
             final UserRecord record = FirebaseAuth.getInstance().getUser(uid);
-            FirebaseAuth.getInstance().updateUser(
-                    new UserRecord.UpdateRequest(uid)
-                            .setDisplayName(
-                                    dto.getDisplayName() != null ? dto.getDisplayName() : record.getDisplayName())
-                            .setEmail(dto.getEmail() != null ? dto.getEmail() : record.getEmail())
-                            .setPhoneNumber(
-                                    dto.getPhoneNumber() != null ? dto.getPhoneNumber() : record.getPhoneNumber())
-                            .setPassword(dto.getPassword() != null ? dto.getPassword() : null)
-                            .setPhotoUrl(dto.getPhotoUrl() != null ? dto.getPhotoUrl() : record.getPhotoUrl())
-                            .setEmailVerified(
-                                    dto.getEmailVerified() != null ? dto.getEmailVerified() : record.isEmailVerified())
-                            .setDisabled(dto.getDisabled() != null ? dto.getDisabled() : record.isDisabled())
-                            .setPassword(dto.getPassword() != null ? dto.getPassword() : null));
-            return this.mapToFirebaseUser(record);
+            UserRecord.UpdateRequest request = new UserRecord.UpdateRequest(uid)
+                    .setDisplayName(dto.getDisplayName() != null ? dto.getDisplayName() : record.getDisplayName())
+                    .setEmail(dto.getEmail() != null ? dto.getEmail() : record.getEmail())
+                    .setPhoneNumber(dto.getPhoneNumber() != null ? dto.getPhoneNumber() : record.getPhoneNumber())
+                    .setPhotoUrl(dto.getPhotoUrl() != null ? dto.getPhotoUrl() : record.getPhotoUrl())
+                    .setEmailVerified(dto.getEmailVerified() != null ? dto.getEmailVerified() : record.isEmailVerified())
+                    .setDisabled(dto.getDisabled() != null ? dto.getDisabled() : record.isDisabled());
+            if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
+                request.setPassword(dto.getPassword());
+            }
+            UserRecord updated = FirebaseAuth.getInstance().updateUser(request);
+            return this.mapToFirebaseUser(updated);
         } catch (FirebaseException e) {
             log.error("Error updating user: {}, Code : {}", e.getMessage(), e.getErrorCode());
             return null;
@@ -105,6 +105,66 @@ public class FirebaseServiceImplement implements FirebaseService {
             log.error("Error updating user: {}", e.getMessage());
         }
         return null;
+    }
+
+    @Override
+    public FirebaseUser syncUserToFirebase(UserModel userModel, String plainPassword) {
+        if (userModel.getFirebaseUid() == null) return null;
+        try {
+            UserRecord current = FirebaseAuth.getInstance().getUser(userModel.getFirebaseUid());
+
+            // Vérifier l'unicité de l'email sur Firebase avant toute modification locale
+            if (userModel.getEmail() != null && !userModel.getEmail().equals(current.getEmail())) {
+                try {
+                    UserRecord byEmail = FirebaseAuth.getInstance().getUserByEmail(userModel.getEmail());
+                    if (!byEmail.getUid().equals(userModel.getFirebaseUid())) {
+                        throw new IllegalArgumentException(
+                                "Cet email est déjà utilisé par un autre compte : " + userModel.getEmail());
+                    }
+                } catch (FirebaseAuthException e) {
+                    if (e.getAuthErrorCode() != AuthErrorCode.USER_NOT_FOUND) {
+                        throw new RuntimeException("Erreur Firebase lors de la vérification de l'email : " + e.getMessage());
+                    }
+                    // USER_NOT_FOUND → email disponible, on continue
+                }
+            }
+
+            // Vérifier l'unicité du numéro de téléphone sur Firebase avant toute modification locale
+            if (userModel.getPhone() != null && !userModel.getPhone().equals(current.getPhoneNumber())) {
+                try {
+                    UserRecord byPhone = FirebaseAuth.getInstance().getUserByPhoneNumber(userModel.getPhone());
+                    if (!byPhone.getUid().equals(userModel.getFirebaseUid())) {
+                        throw new IllegalArgumentException(
+                                "Ce numéro de téléphone est déjà utilisé par un autre compte : " + userModel.getPhone());
+                    }
+                } catch (FirebaseAuthException e) {
+                    if (e.getAuthErrorCode() != AuthErrorCode.USER_NOT_FOUND) {
+                        throw new RuntimeException("Erreur Firebase lors de la vérification du téléphone : " + e.getMessage());
+                    }
+                    // USER_NOT_FOUND → numéro disponible, on continue
+                }
+            }
+
+            // Construire la requête de mise à jour Firebase
+            UserRecord.UpdateRequest request = new UserRecord.UpdateRequest(userModel.getFirebaseUid());
+            if (userModel.getName() != null) request.setDisplayName(userModel.getName());
+            if (userModel.getEmail() != null) request.setEmail(userModel.getEmail());
+            if (userModel.getPhone() != null) request.setPhoneNumber(userModel.getPhone());
+            if (userModel.getProfilePictureUrl() != null) request.setPhotoUrl(userModel.getProfilePictureUrl());
+            if (plainPassword != null && !plainPassword.isBlank()) request.setPassword(plainPassword);
+
+            UserRecord updated = FirebaseAuth.getInstance().updateUser(request);
+            return mapToFirebaseUser(updated);
+
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (FirebaseAuthException e) {
+            log.error("Firebase error syncing user {}: {} (code={})", userModel.getFirebaseUid(), e.getMessage(), e.getAuthErrorCode());
+            throw new RuntimeException("Erreur Firebase lors de la synchronisation : " + e.getMessage());
+        } catch (Exception e) {
+            log.error("Error syncing user {} to Firebase: {}", userModel.getFirebaseUid(), e.getMessage());
+            throw new RuntimeException("Erreur lors de la synchronisation avec Firebase : " + e.getMessage());
+        }
     }
 
     @Override

@@ -18,7 +18,7 @@ public interface UsersServices {
 
     public Optional<UserModel> getUserByFirebaseUid(String firebaseUid);
 
-    public UserModel updateUser(UserModel userModel);
+    public UserModel updateUser(UserModel userModel, String plainPassword);
 
     public Page<UserModel> getAllUsers(Integer page, Integer size);
 
