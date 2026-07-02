@@ -72,6 +72,11 @@ services:
       RESEND_API_KEY: ${RESEND_API_KEY}
       RESEND_FROM:    ${RESEND_FROM}
 
+      # ── SMS (Monprof / LMT Group) ────────────────────────────────────────
+      MONPROF_SMS_API_KEY:    ${MONPROF_SMS_API_KEY}
+      MONPROF_SMS_API_SECRET: ${MONPROF_SMS_API_SECRET}
+      MONPROF_SMS_SENDER_ID:  ${MONPROF_SMS_SENDER_ID:-Prepa}
+
       # ── Paiement (Campay) ────────────────────────────────────────────────
       CAMPAY_URL:      ${CAMPAY_URL}
       CAMPAY_USERNAME: ${CAMPAY_USERNAME}
