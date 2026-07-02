@@ -62,5 +62,11 @@ mail:
     apiKey: ${RESEND_API_KEY:re_placeholder}
     from:   ${RESEND_FROM:Prepa Concours <noreply@mutrix.org>}
 
+sms:
+  monprof:
+    apiKey:   ${MONPROF_SMS_API_KEY:placeholder}
+    apiSecret: ${MONPROF_SMS_API_SECRET:placeholder}
+    senderId: ${MONPROF_SMS_SENDER_ID:Prepa}
+
 firebase:
   service-account-json: ${FIREBASE_SERVICE_ACCOUNT_JSON:}

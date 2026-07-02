@@ -21,8 +21,7 @@ public class SmsNotificationChannels implements NotificationsChannel {
     @Override
     public void sendNotification(NotificationModel notification) {
 
-        // Generate template with title and body
-        String content = "Title: " + notification.getTitle() + "\n" + "Body: " + notification.getBody();
+        String content = notification.getBody();
         SmsNotificationProvider smsNotificationProvider = smsNotificationFactory.create(smsProviderType);
         notification.getReceiver().forEach((chanelValueElement)->{
             smsNotificationProvider.sendSmsNotification(chanelValueElement, content);
