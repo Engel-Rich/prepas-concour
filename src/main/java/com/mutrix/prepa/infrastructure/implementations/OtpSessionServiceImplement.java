@@ -24,7 +24,7 @@ public class OtpSessionServiceImplement implements OtpSessionService {
     public OtpSession createOtpSession(OtpSession otpSession, String clearOtp) {
         String otpHash = passwordEncoder.encode(clearOtp);
         otpSession.setOtpHash(otpHash);
-        otpSession.setExpiresAt(System.currentTimeMillis() + 30 * 60 * 1000); // OTP expires in 5 minutes
+        otpSession.setExpiresAt(System.currentTimeMillis() + 5 * 60 * 1000); // OTP expires in 5 minutes
         final OtpSessionEntity entity = OtpSessionsMapper.toEntity(otpSession);
         final OtpSessionEntity savedEntity = otpSessionRepository.save(entity);
         return OtpSessionsMapper.toDomain(savedEntity);
@@ -63,11 +63,10 @@ public class OtpSessionServiceImplement implements OtpSessionService {
             throw new RuntimeException("OTP code has expired");
         }
         final OtpSessionEntity entity = optionalEntity.get();
-        if (passwordEncoder.matches(otp, entity.getOtpHash())) {
-            return OtpSessionsMapper.toDomain(entity);
+        if (!passwordEncoder.matches(otp, entity.getOtpHash())) {
+            throw new RuntimeException("Invalid OTP code");
         }
         return OtpSessionsMapper.toDomain(entity);
-        // throw new RuntimeException("Invalid OTP code");
 
     }
 }

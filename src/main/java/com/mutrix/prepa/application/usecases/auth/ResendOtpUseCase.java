@@ -20,9 +20,6 @@ public class ResendOtpUseCase {
         try {
             OtpSession session = otpSessionRepository.getOtpSessionById(dto.getOtpSessionId())
                     .orElseThrow(() -> new RuntimeException("OTP session not found for ID: " + dto.getOtpSessionId()));
-            if (session.getExpiresAt() > System.currentTimeMillis()) {
-                throw new RuntimeException("The Otp session is still valid, please wait until it expires before requesting a new OTP.");
-            }
             String newOtp = NumberGenerator.generateRandomSixDigitInt();
             session.setId(null);
             otpSessionRepository.deleteOtpSessionById(dto.getOtpSessionId());
