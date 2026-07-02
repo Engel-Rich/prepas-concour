@@ -4,23 +4,13 @@ import com.mutrix.prepa.domaines.notifications.providers.SmsNotificationProvider
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 
-import java.util.List;
-import java.util.Map;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 
-/**
- * Fournisseur SMS via l'API LMT Group (https://sms.lmtgroup.com).
- * <p>
- * Variables d'environnement requises :
- * <ul>
- *   <li>{@code MONPROF_SMS_API_KEY}    – clé API (header X-Api-Key)</li>
- *   <li>{@code MONPROF_SMS_API_SECRET} – secret API (header X-Secret)</li>
- *   <li>{@code MONPROF_SMS_SENDER_ID}  – identifiant expéditeur affiché</li>
- * </ul>
- */
 @Slf4j
 @Component
 public class MonprofNotificationProvider implements SmsNotificationProvider {
@@ -38,12 +28,12 @@ public class MonprofNotificationProvider implements SmsNotificationProvider {
     @Value("${sms.monprof.senderId:Prepa}")
     private String senderId;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final HttpClient httpClient = HttpClient.newHttpClient();
     private boolean configured;
 
     @PostConstruct
     private void init() {
-        configured = !PLACEHOLDER.equals(apiKey) && !PLACEHOLDER.equals(apiSecret);
+        configured = !PLACEHOLDER.equals(apiKey.trim()) && !PLACEHOLDER.equals(apiSecret.trim());
         if (configured) {
             log.info("Monprof SMS : provider initialisé (senderId={})", senderId);
         } else {
@@ -60,34 +50,32 @@ public class MonprofNotificationProvider implements SmsNotificationProvider {
             return;
         }
 
+        String cleanApiKey    = apiKey.replaceAll("^\"|\"$", "").trim();
+        String cleanApiSecret = apiSecret.replaceAll("^\"|\"$", "").trim();
+
+        String json = String.format(
+                "{\"message\":\"%s\",\"senderId\":\"%s\",\"msisdn\":[\"%s\"]}",
+                message.replace("\"", "\\\""), senderId, msisdn
+        );
+
         try {
-            String cleanApiKey    = apiKey.replaceAll("^\"|\"$", "").trim();
-            String cleanApiSecret = apiSecret.replaceAll("^\"|\"$", "").trim();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(API_URL))
+                    .header("Content-Type", "application/json")
+                    .header("X-Api-Key", cleanApiKey)
+                    .header("X-Secret",  cleanApiSecret)
+                    .POST(HttpRequest.BodyPublishers.ofString(json))
+                    .build();
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("X-Api-Key", cleanApiKey);
-            headers.set("X-Secret",  cleanApiSecret);
+            log.info("Monprof SMS → POST {} | body={}", API_URL, json);
 
-            Map<String, Object> body = Map.of(
-                    "message",  message,
-                    "senderId", senderId,
-                    "msisdn",   List.of(msisdn)
-            );
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-            log.info("Monprof SMS → POST {} | X-Api-Key={}... | X-Secret={}... | body={}",
-                    API_URL,
-                    cleanApiKey.length() > 6 ? cleanApiKey.substring(0, 6) : "?",
-                    cleanApiSecret.length() > 6 ? cleanApiSecret.substring(0, 6) : "?",
-                    body);
+            log.info("Monprof SMS : réponse → status={} | body={}", response.statusCode(), response.body());
 
-            HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
-
-            ResponseEntity<Map> response = restTemplate.exchange(
-                    API_URL, HttpMethod.POST, request, Map.class
-            );
-
-            log.info("Monprof SMS : envoyé → status={} | body={} | to={}", response.getStatusCode(), response.getBody(), msisdn);
+            if (response.statusCode() >= 300) {
+                throw new RuntimeException("HTTP " + response.statusCode() + " : " + response.body());
+            }
 
         } catch (Exception e) {
             log.error("Monprof SMS : erreur lors de l'envoi à {} : {}", msisdn, e.getMessage(), e);
@@ -95,24 +83,11 @@ public class MonprofNotificationProvider implements SmsNotificationProvider {
         }
     }
 
-    /**
-     * Normalise le numéro pour l'API LMT :
-     * - Supprime le préfixe "+" ou "00"
-     * - Supprime l'indicatif pays "237" s'il est déjà présent
-     * - Préfixe avec "237"
-     * Exemples : "+237612345678" → "237612345678"
-     *            "612345678"      → "237612345678"
-     *            "237612345678"   → "237612345678"
-     */
     private String normalizePhone(String phone) {
         if (phone == null) return "";
         String digits = phone.replaceAll("[^0-9]", "");
-        if (digits.startsWith("00")) {
-            digits = digits.substring(2);
-        }
-        if (digits.startsWith(COUNTRY_CODE) && digits.length() > COUNTRY_CODE.length()) {
-            return digits;
-        }
+        if (digits.startsWith("00")) digits = digits.substring(2);
+        if (digits.startsWith(COUNTRY_CODE) && digits.length() > COUNTRY_CODE.length()) return digits;
         return COUNTRY_CODE + digits;
     }
 }
