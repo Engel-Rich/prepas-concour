@@ -61,16 +61,25 @@ public class MonprofNotificationProvider implements SmsNotificationProvider {
         }
 
         try {
+            String cleanApiKey    = apiKey.replaceAll("^\"|\"$", "").trim();
+            String cleanApiSecret = apiSecret.replaceAll("^\"|\"$", "").trim();
+
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("X-Api-Key", apiKey);
-            headers.set("X-Secret", apiSecret);
+            headers.set("X-Api-Key", cleanApiKey);
+            headers.set("X-Secret",  cleanApiSecret);
 
             Map<String, Object> body = Map.of(
-                    "message", message,
+                    "message",  message,
                     "senderId", senderId,
-                    "msisdn", List.of(msisdn)
+                    "msisdn",   List.of(msisdn)
             );
+
+            log.info("Monprof SMS → POST {} | X-Api-Key={}... | X-Secret={}... | body={}",
+                    API_URL,
+                    cleanApiKey.length() > 6 ? cleanApiKey.substring(0, 6) : "?",
+                    cleanApiSecret.length() > 6 ? cleanApiSecret.substring(0, 6) : "?",
+                    body);
 
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
 
@@ -78,7 +87,7 @@ public class MonprofNotificationProvider implements SmsNotificationProvider {
                     API_URL, HttpMethod.POST, request, Map.class
             );
 
-            log.info("Monprof SMS : envoyé → status={} | to={}", response.getStatusCode(), msisdn);
+            log.info("Monprof SMS : envoyé → status={} | body={} | to={}", response.getStatusCode(), response.getBody(), msisdn);
 
         } catch (Exception e) {
             log.error("Monprof SMS : erreur lors de l'envoi à {} : {}", msisdn, e.getMessage(), e);
