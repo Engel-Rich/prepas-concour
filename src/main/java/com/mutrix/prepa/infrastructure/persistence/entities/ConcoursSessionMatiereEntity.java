@@ -29,6 +29,12 @@ public class ConcoursSessionMatiereEntity {
     private MatiereEntity matiere;
 
     @Column
+    private Integer dureeMinutes;
+
+    @Column
+    private Double coefficient;
+
+    @Column
     private LocalDateTime createdAt;
 
     @PrePersist

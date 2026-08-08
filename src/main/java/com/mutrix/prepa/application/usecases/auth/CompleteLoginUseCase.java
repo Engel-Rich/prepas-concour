@@ -23,13 +23,23 @@ public class CompleteLoginUseCase {
         try {
             UserModel userModel = null;
             OtpSession session = otpSessionService.validateOtp(dto.getOtpSessionId(),
-                    String.valueOf(dto.getOtp()));
+                    String.format("%06d", dto.getOtp()));
             if (session.getEmail() != null) {
                 userModel = usersServices.getUserByEmail(session.getEmail())
                         .orElseThrow(() -> new RuntimeException("User not found"));
+                // L'OTP email vient d'être validé : marquer l'email comme vérifié
+                if (!Boolean.TRUE.equals(userModel.getHasEmailVerified())) {
+                    userModel.setHasEmailVerified(true);
+                    usersServices.updateUser(userModel, null);
+                }
             } else if (session.getPhone() != null) {
                 userModel = usersServices.getUserByPhone(session.getPhone())
                         .orElseThrow(() -> new RuntimeException("User not found"));
+                // L'OTP SMS vient d'être validé : marquer le téléphone comme vérifié
+                if (!Boolean.TRUE.equals(userModel.getHasPhoneVerified())) {
+                    userModel.setHasPhoneVerified(true);
+                    usersServices.updateUser(userModel, null);
+                }
             } else {
                 throw new RuntimeException("Invalid OTP session");
             }

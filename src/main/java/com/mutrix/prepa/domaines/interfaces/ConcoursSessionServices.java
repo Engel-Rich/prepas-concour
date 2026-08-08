@@ -19,4 +19,6 @@ public interface ConcoursSessionServices {
     Page<ConcoursSessions> getAllByConcoursId(UUID concoursId, Integer page, Integer size);
 
     void deleteConcoursSession(UUID id);
+
+    Optional<ConcoursSessions> getActiveSessionByConcoursId(UUID concoursId);
 }

@@ -26,6 +26,7 @@ public final class MatieresEntityMapper {
                 .updatedAt(entity.getUpdatedAt())
                 .isActive(entity.getIsActive())
                 .logoUrl(entity.getLogoUrl())
+                .dureeNecessaireMinutes(entity.getDureeNecessaireMinutes())
                 .metadata(metadata)
                 .build();
     }
@@ -44,6 +45,7 @@ public final class MatieresEntityMapper {
                 .updatedAt(domain.getUpdatedAt())
                 .isActive(domain.getIsActive())
                 .logoUrl(domain.getLogoUrl())
+                .dureeNecessaireMinutes(domain.getDureeNecessaireMinutes())
                 .metadata(metadata)
                 .build();
     }

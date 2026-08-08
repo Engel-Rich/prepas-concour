@@ -17,6 +17,9 @@ public interface TransactionServices {
 
     Optional<Transaction> findByReference(String reference);
 
+    /** Dernière transaction liée à une souscription (triée par createdAt desc). */
+    Optional<Transaction> findLatestBySubscriptionId(UUID subscriptionId);
+
     List<Transaction> findAllPending();
 
     Page<Transaction> list(UUID userId, int page, int size);

@@ -26,21 +26,30 @@ public class LoginByOAuth2ProviderUseCase {
         try {
             final Roles userRole = rolesServices.getRoleByName("USER");
 
-            // 1. Récupérer les données Firebase via l'UID fourni dans le body.
-            //    L'ID token est vérifié en amont par FirebaseAuthFilter (header Authorization).
+            // 1. Données Firebase (UID vérifié en amont par FirebaseAuthFilter)
             FirebaseUser firebaseUser = firebaseService.getUserByUid(dto.getFirebaseUid());
 
-            // 2. Chercher l'utilisateur par son UID Firebase
+            // 2. Chercher d'abord par firebaseUid
             var userOpt = usersServices.getUserByFirebaseUid(dto.getFirebaseUid());
 
+            // 3. Si pas trouvé par UID → chercher par email pour merger un compte existant
+            //    (ex : inscrit par OTP puis connexion Google avec le même email)
+            if (userOpt.isEmpty() && firebaseUser.getEmail() != null) {
+                userOpt = usersServices.getUserByEmail(firebaseUser.getEmail());
+                if (userOpt.isPresent()) {
+                    // Migrer le firebaseUid vers celui du provider OAuth2
+                    userOpt.get().setFirebaseUid(firebaseUser.getUid());
+                }
+            }
+
             if (userOpt.isEmpty()) {
-                // Nouvel utilisateur OAuth2 — pas encore de compte dans le système
+                // Nouveau compte OAuth2
                 UserModel newUser = buildFromFirebase(firebaseUser, userRole);
                 UserModel saved = usersServices.createUser(newUser);
                 return UserResponseMapper.mapFromUser(saved);
             }
 
-            // 3. Utilisateur existant — mettre à jour ses données Firebase
+            // 4. Compte existant → merger les données Firebase
             UserModel updated = usersServices.updateUser(mergeFromFirebase(userOpt.get(), firebaseUser), null);
             return UserResponseMapper.mapFromUser(updated);
 
@@ -77,13 +86,18 @@ public class LoginByOAuth2ProviderUseCase {
         if (fb.getEmail() != null)
             user.setEmail(fb.getEmail());
 
+        // L'email est vérifié par le provider OAuth2 (Google/Apple)
+        if (Boolean.TRUE.equals(fb.getEmailVerified()))
+            user.setHasEmailVerified(true);
+
         if ((user.getName() == null || user.getName().isBlank()) && fb.getDisplayName() != null)
             user.setName(fb.getDisplayName());
 
+        // Ne remplace le téléphone que s'il était absent — le user peut avoir son propre numéro
         if ((user.getPhone() == null || user.getPhone().isBlank()) && fb.getPhoneNumber() != null)
             user.setPhone(fb.getPhoneNumber());
 
-        if (fb.getPhotoUrl() != null)
+        if (fb.getPhotoUrl() != null && (user.getProfilePictureUrl() == null || user.getProfilePictureUrl().isBlank()))
             user.setProfilePictureUrl(fb.getPhotoUrl());
 
         if (fb.getMetadata() != null)

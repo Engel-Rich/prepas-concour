@@ -17,7 +17,6 @@ public class MonprofNotificationProvider implements SmsNotificationProvider {
 
     private static final String PLACEHOLDER = "placeholder";
     private static final String API_URL = "https://sms.lmtgroup.com/api/v1/pushes";
-    private static final String COUNTRY_CODE = "237";
 
     @Value("${sms.monprof.apiKey:" + PLACEHOLDER + "}")
     private String apiKey;
@@ -46,12 +45,15 @@ public class MonprofNotificationProvider implements SmsNotificationProvider {
         final String msisdn = normalizePhone(phoneNumber);
 
         if (!configured) {
-            log.info("[MONPROF SIMULATION] To: {} | Message: {}", msisdn, message);
-            return;
+            throw new RuntimeException("SMS Cant be sent please try another way");
+//            log.info("[MONPROF SIMULATION] To: {} | Message: {}", msisdn, message);
+//            return;
         }
 
-        String cleanApiKey    = apiKey.replaceAll("^\"|\"$", "").trim();
-        String cleanApiSecret = apiSecret.replaceAll("^\"|\"$", "").trim();
+        String cleanApiKey    = apiKey.trim();
+        String cleanApiSecret = apiSecret.trim();
+
+//        log.info("APIK: {} \n API SECRET {}", cleanApiKey, cleanApiSecret);
 
         String json = String.format(
                 "{\"message\":\"%s\",\"senderId\":\"%s\",\"msisdn\":[\"%s\"]}",
@@ -87,7 +89,6 @@ public class MonprofNotificationProvider implements SmsNotificationProvider {
         if (phone == null) return "";
         String digits = phone.replaceAll("[^0-9]", "");
         if (digits.startsWith("00")) digits = digits.substring(2);
-        if (digits.startsWith(COUNTRY_CODE) && digits.length() > COUNTRY_CODE.length()) return digits;
-        return COUNTRY_CODE + digits;
+        return digits; // MSISDN complet sans le +, ex: "237654321234" ou "33612345678"
     }
 }

@@ -38,4 +38,7 @@ public class ConcourResponseDTO {
 
     @Schema(description = "Informations supplémentaires")
     private Map<String, Object> metadata;
+
+    @Schema(description = "Session active du concours (null si aucune session active)")
+    private ConcourSessionResponse activeSession;
 }

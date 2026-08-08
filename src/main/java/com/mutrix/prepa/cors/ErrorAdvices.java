@@ -50,6 +50,18 @@ public class ErrorAdvices {
 //     return ResponseEntity.status(401).body(ex.getMessage());
 //     }
 
+    /**
+     * Conflit métier : l'état courant interdit l'opération demandée
+     * (code déjà consommé, souscription déjà active, session fermée…).
+     */
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ApiResponseFormat<String>> handleIllegalStateException(
+            IllegalStateException ex,
+            WebRequest request
+    ) {
+        return ResponseEntity.status(409).body(ApiResponseFormat.fromError(ex.getMessage(), 409));
+    }
+
     // Gestion des autres exceptions générales
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponseFormat<String>> handleGlobalExceptions(Exception ex, WebRequest request) {

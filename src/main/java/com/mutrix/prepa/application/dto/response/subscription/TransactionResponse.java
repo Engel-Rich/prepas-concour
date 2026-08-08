@@ -52,6 +52,8 @@ public class TransactionResponse extends BaseResponse {
     @Schema(description = "Numéro de téléphone utilisé", example = "237690000000")
     private String phoneNumber;
 
+    @Schema(description = "Meta donne ")
+
     public static TransactionResponse fromDomain(Transaction t) {
         return TransactionResponse.builder()
                 .id(t.getId())

@@ -36,6 +36,9 @@ public class MatiereEntity {
     private Boolean isActive;
 
     @Column()
+    private Integer dureeNecessaireMinutes;
+
+    @Column()
     private LocalDateTime createdAt;
 
     @Column()

@@ -2,6 +2,7 @@ package com.mutrix.prepa.infrastructure.implementations;
 
 import com.mutrix.prepa.domaines.models.ConcoursSessions;
 import com.mutrix.prepa.domaines.interfaces.ConcoursSessionServices;
+import com.mutrix.prepa.domaines.valueobjects.ConcoursSessionsStatus;
 import com.mutrix.prepa.infrastructure.mappers.ConcoursSessionEntityMapper;
 import com.mutrix.prepa.infrastructure.persistence.data_repositories.ConcoursRepository;
 import com.mutrix.prepa.infrastructure.persistence.data_repositories.ConcoursSessionRepository;
@@ -72,5 +73,12 @@ public class ConcoursSessionServicesImplement implements ConcoursSessionServices
     @Override
     public void deleteConcoursSession(UUID id) {
         concoursSessionRepository.deleteById(id);
+    }
+
+    @Override
+    public Optional<ConcoursSessions> getActiveSessionByConcoursId(UUID concoursId) {
+        return concoursSessionRepository
+                .findFirstByConcours_IdAndStatus(concoursId, ConcoursSessionsStatus.ONGOING)
+                .map(ConcoursSessionEntityMapper::toDomain);
     }
 }

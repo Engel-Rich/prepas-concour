@@ -1,8 +1,11 @@
 package com.mutrix.prepa.presentation;
 
 import com.mutrix.prepa.application.dto.response.ConcourSessionResponse;
+import com.mutrix.prepa.application.dto.response.CoursResponse;
 import com.mutrix.prepa.application.usecases.concours.GetConcourSessionUseCases;
+import com.mutrix.prepa.application.usecases.cours.GetSessionCoursListUseCase;
 import com.mutrix.prepa.cors.ApiResponseFormat;
+import com.mutrix.prepa.infrastructure.security.SecurityUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -13,7 +16,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/concours-sessions")
@@ -22,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 public class ConcoursSessionController {
 
     private final GetConcourSessionUseCases getConcourSessionUseCases;
+    private final GetSessionCoursListUseCase getSessionCoursListUseCase;
 
     @Operation(
             summary = "Récupérer une session par son identifiant",
@@ -89,5 +97,24 @@ public class ConcoursSessionController {
                         getConcourSessionUseCases.list(page, size)
                 )
         );
+    }
+
+    @Operation(
+            summary = "Lister les cours d'une session",
+            description = "Retourne les cours associés à cette session. Le videoUrl est inclus uniquement pour les utilisateurs ayant une souscription RUNNING ou pour les cours gratuits."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Cours récupérés avec succès"),
+            @ApiResponse(responseCode = "404", description = "Session non trouvée")
+    })
+    @GetMapping("/{sessionId}/cours")
+    public ResponseEntity<ApiResponseFormat<List<CoursResponse>>> getSessionCours(
+            @Parameter(description = "Identifiant UUID de la session", required = true)
+            @PathVariable UUID sessionId,
+            @AuthenticationPrincipal SecurityUser securityUser
+    ) {
+        UUID userId = securityUser != null ? securityUser.getUser().getId() : null;
+        List<CoursResponse> response = getSessionCoursListUseCase.execute(sessionId, userId);
+        return ResponseEntity.ok(ApiResponseFormat.fromResponse(response));
     }
 }

@@ -1,9 +1,12 @@
 package com.mutrix.prepa.presentation.admin;
 
 import com.mutrix.prepa.application.dto.response.subscription.SubscriptionResponse;
+import com.mutrix.prepa.application.dto.response.subscription.SubscriptionVerificationResponse;
 import com.mutrix.prepa.application.usecases.subscriptions.DeleteSubscriptionUseCase;
 import com.mutrix.prepa.application.usecases.subscriptions.GetSubscriptionByIdUseCase;
 import com.mutrix.prepa.application.usecases.subscriptions.SearchSubscriptionsUseCase;
+import com.mutrix.prepa.application.usecases.subscriptions.VerifySubscriptionPaymentUseCase;
+import com.mutrix.prepa.domaines.interfaces.subscriptions.SubscriptionServices;
 import com.mutrix.prepa.cors.ApiResponseFormat;
 import com.mutrix.prepa.cors.PageResponse;
 import com.mutrix.prepa.domaines.valueobjects.SubscriptionStatus;
@@ -27,6 +30,8 @@ public class AdminSubscriptionsController {
     private final GetSubscriptionByIdUseCase getSubscriptionByIdUseCase;
     private final SearchSubscriptionsUseCase searchSubscriptionsUseCase;
     private final DeleteSubscriptionUseCase deleteSubscriptionUseCase;
+    private final VerifySubscriptionPaymentUseCase verifySubscriptionPaymentUseCase;
+    private final SubscriptionServices subscriptionServices;
 
     @Operation(summary = "Lister toutes les inscriptions")
     @ApiResponses(value = {
@@ -104,5 +109,35 @@ public class AdminSubscriptionsController {
             @Parameter(description = "UUID de l'inscription") @PathVariable UUID id) {
         deleteSubscriptionUseCase.execute(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Annuler une inscription (statut → CANCELED)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Inscription annulée"),
+            @ApiResponse(responseCode = "404", description = "Inscription introuvable"),
+            @ApiResponse(responseCode = "403", description = "Accès refusé")
+    })
+    @PatchMapping("/{id}/cancel")
+    public ResponseEntity<Void> cancel(
+            @Parameter(description = "UUID de l'inscription") @PathVariable UUID id) {
+        subscriptionServices.cancel(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Relancer la vérification du paiement",
+            description = "Récupère la dernière transaction de l'inscription, interroge le fournisseur de paiement, "
+                    + "puis finalise l'inscription : activation pour un achat individuel, génération des codes "
+                    + "d'activation pour un achat groupé, avec envoi des notifications. "
+                    + "Opération idempotente — relançable sans risque.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Vérification effectuée"),
+            @ApiResponse(responseCode = "404", description = "Inscription introuvable"),
+            @ApiResponse(responseCode = "403", description = "Accès refusé")
+    })
+    @PostMapping("/{id}/verify")
+    public ResponseEntity<ApiResponseFormat<SubscriptionVerificationResponse>> verify(
+            @Parameter(description = "UUID de l'inscription") @PathVariable UUID id) {
+        return ResponseEntity.ok(ApiResponseFormat.fromResponse(
+                verifySubscriptionPaymentUseCase.execute(id)));
     }
 }

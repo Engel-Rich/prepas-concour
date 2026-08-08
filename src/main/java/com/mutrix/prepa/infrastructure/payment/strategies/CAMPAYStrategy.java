@@ -14,6 +14,7 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -57,8 +58,8 @@ public class CAMPAYStrategy implements TransactionPaymentService {
         String token = getCampayToken();
 
         Map<String, Object> payload = Map.of(
-                "from", phoneNumber,
-                "description", "Paiement inscription concours",
+                "from", "+237"+phoneNumber,
+                "description", "ABONNMENT PREPAS CONCOURS ",
                 "amount", String.valueOf((long) amount),
                 "external_reference", reference
         );
@@ -71,7 +72,7 @@ public class CAMPAYStrategy implements TransactionPaymentService {
                 .paymentServiceId(paymentServiceId)
                 .status(TransactionStatus.PENDING)
                 .sens(sens)
-                .phoneNumber(phoneNumber)
+                .phoneNumber("+237"+phoneNumber)
                 .isActive(true)
                 .build();
 
@@ -118,6 +119,8 @@ public class CAMPAYStrategy implements TransactionPaymentService {
             if (response == null) {
                 throw new RuntimeException("Réponse vide de CAMPAY pour la transaction: " + reference);
             }
+String reason = null;
+    log.info(response.toString());
 
             String campayStatus = String.valueOf(response.get("status"));
             TransactionStatus status = switch (campayStatus) {
@@ -126,6 +129,14 @@ public class CAMPAYStrategy implements TransactionPaymentService {
                 default -> TransactionStatus.PENDING;
             };
 
+            if(status==TransactionStatus.FAILED){
+             reason= String.valueOf(response.getOrDefault("reason", "Paiement refusé"));
+             if(Objects.equals(reason, "CANCELED")){
+                 status= TransactionStatus.CANCELED;
+                 reason = "Payment has been canceled by the customer";
+             }
+            }
+
             // Chercher la transaction existante par référence
             // On construit un objet minimal pour la mise à jour via le scheduler
             return Transaction.builder()
@@ -133,8 +144,8 @@ public class CAMPAYStrategy implements TransactionPaymentService {
                     .status(status)
                     .externalId(response.containsKey("operator_reference")
                             ? String.valueOf(response.get("operator_reference")) : null)
-                    .raisonReject(status == TransactionStatus.FAILED
-                            ? String.valueOf(response.getOrDefault("message", "Paiement refusé")) : null)
+                    .raisonReject(reason)
+                    .metadata(response)
                     .build();
 
         } catch (RestClientException e) {

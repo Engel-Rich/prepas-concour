@@ -4,15 +4,19 @@ import com.mutrix.prepa.application.dto.commandes.auth.RegisterCommand;
 import com.mutrix.prepa.application.dto.response.OtpResponse;
 import com.mutrix.prepa.cors.NumberGenerator;
 import com.mutrix.prepa.cors.UseCase;
+import com.mutrix.prepa.domaines.models.FirebaseUser;
 import com.mutrix.prepa.domaines.models.OtpSession;
 import com.mutrix.prepa.domaines.models.UserModel;
 import com.mutrix.prepa.domaines.interfaces.OtpSessionService;
 import com.mutrix.prepa.domaines.interfaces.UsersServices;
+import com.mutrix.prepa.domaines.services.FirebaseService;
 import com.mutrix.prepa.domaines.valueobjects.NotificationType;
 import com.mutrix.prepa.domaines.valueobjects.OtpType;
 import com.mutrix.prepa.infrastructure.services.NotificationServiceImplement;
 import lombok.RequiredArgsConstructor;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -22,31 +26,38 @@ public class RegistrationsInitiateUseCase {
     private final UsersServices usersServices;
     public final OtpSessionService otpSessionService;
     private final NotificationServiceImplement notificationService;
+    private  final FirebaseService firebaseService;
 
     public OtpResponse execute(RegisterCommand dto) {
         try {
             final Optional<UserModel> usersEmail = usersServices.getUserByEmail(dto.getEmail());
-            if (usersEmail.isPresent()) {
+            final Optional<FirebaseUser> firebaseUserByEmail = firebaseService.getUserByEmail(dto.getEmail());
+            if (usersEmail.isPresent() || firebaseUserByEmail.isPresent() ) {
                 throw new RuntimeException("User with this email already exists");
             }
             final Optional<UserModel> usersPhone = usersServices.getUserByPhone(dto.getPhoneNumber());
-            if (usersPhone.isPresent()) {
+            final Optional<FirebaseUser> firebaseUserByPhone = firebaseService.getByPhoneNumber(dto.getPhoneNumber());
+            if (usersPhone.isPresent() || firebaseUserByPhone.isPresent()) {
                 throw new RuntimeException("User with this phone number already exists");
             }
 
             String otp = NumberGenerator.generateRandomSixDigitInt();
+
+            NotificationType channel = InitiateLoginUseCase.resolveChannel(
+                    dto.getEmail(), dto.getPhoneNumber(), dto.getNotificationType());
+            sendOtp(channel, dto.getEmail(), dto.getPhoneNumber(), dto.getFullName(), otp);
+
+            HashMap<String, Object> metaData = new HashMap<>();
+            metaData.put("channel", channel.name());
 
             final OtpSession otpSession = OtpSession.builder()
                     .email(dto.getEmail())
                     .phone(dto.getPhoneNumber())
                     .fullName(dto.getFullName())
                     .otpType(OtpType.REGISTRATION)
+                    .metadata(Map.copyOf(metaData))
                     .build();
             final OtpSession savedSession = otpSessionService.createOtpSession(otpSession, otp);
-
-            NotificationType channel = InitiateLoginUseCase.resolveChannel(
-                    dto.getEmail(), dto.getPhoneNumber(), dto.getNotificationType());
-            sendOtp(channel, dto.getEmail(), dto.getPhoneNumber(), dto.getFullName(), otp);
 
             return OtpResponse.builder()
                     .otpId(savedSession.getId())

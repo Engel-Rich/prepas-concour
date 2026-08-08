@@ -25,4 +25,7 @@ public interface TransactionRepository extends JpaRepository<TransactionEntity, 
 
     @Query("SELECT t FROM TransactionEntity t JOIN FETCH t.paymentService ps JOIN FETCH ps.provider JOIN FETCH t.subscription sub JOIN FETCH t.user u WHERE t.status = :status")
     List<TransactionEntity> findAllPendingWithProvider(TransactionStatus status);
+
+    /** Dernière transaction liée à une souscription donnée. */
+    Optional<TransactionEntity> findTopBySubscription_IdOrderByCreatedAtDesc(UUID subscriptionId);
 }

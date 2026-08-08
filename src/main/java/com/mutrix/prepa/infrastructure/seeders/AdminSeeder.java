@@ -81,7 +81,8 @@ public class AdminSeeder implements ApplicationRunner {
 
         FirebaseUser firebaseUser = null;
         try {
-            firebaseUser = firebaseService.getUserByEmail(entry.email());
+         Optional<FirebaseUser>    optionalUser = firebaseService.getUserByEmail(entry.email());
+            firebaseUser = optionalUser.orElse(null);
         } catch (Exception ignored) {}
 
         if (firebaseUser == null) {

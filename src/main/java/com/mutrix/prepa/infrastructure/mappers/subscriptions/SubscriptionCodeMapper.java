@@ -8,9 +8,13 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface SubscriptionCodeMapper {
 
-    @Mapping(source = "subscription.id",target = "subscriptionId")
-   public SubscriptionCode toModel(SubscriptionCodeEntity entity);
+    @Mapping(source = "subscription.id", target = "subscriptionId")
+    @Mapping(source = "usedBy.id", target = "usedByUserId")
+    @Mapping(source = "activatedSubscription.id", target = "activatedSubscriptionId")
+    public SubscriptionCode toModel(SubscriptionCodeEntity entity);
 
     @Mapping(source = "subscriptionId", target = "subscription.id")
-   public SubscriptionCodeEntity toEntity(SubscriptionCode subscriptionCode);
+    @Mapping(source = "usedByUserId", target = "usedBy.id")
+    @Mapping(source = "activatedSubscriptionId", target = "activatedSubscription.id")
+    public SubscriptionCodeEntity toEntity(SubscriptionCode subscriptionCode);
 }

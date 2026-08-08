@@ -128,7 +128,7 @@ public class AdminCoursController {
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponseFormat<CoursResponse>> getById(
             @Parameter(description = "UUID du cours") @PathVariable UUID id) {
-        return ResponseEntity.ok(ApiResponseFormat.fromResponse(getCoursUseCase.execute(id)));
+        return ResponseEntity.ok(ApiResponseFormat.fromResponse(getCoursUseCase.execute(id, null)));
     }
 
     @Operation(summary = "Lister tous les cours")

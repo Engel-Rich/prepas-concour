@@ -1,5 +1,6 @@
 package com.mutrix.prepa.infrastructure.scheduler;
 
+import com.mutrix.prepa.application.usecases.subscriptions.codes.ProcessSuccessfulPaymentUseCase;
 import com.mutrix.prepa.domaines.interfaces.UsersServices;
 import com.mutrix.prepa.domaines.interfaces.subscriptions.SubscriptionServices;
 import com.mutrix.prepa.domaines.models.NotificationModel;
@@ -33,6 +34,7 @@ public class TransactionPollingScheduler {
     private final TransactionRepository transactionRepository;
     private final SubscriptionRepository subscriptionRepository;
     private final UsersServices usersServices;
+    private final ProcessSuccessfulPaymentUseCase processSuccessfulPaymentUseCase;
     private final NotificationFactory notificationFactory;
     private final PaymentFactory paymentFactory;
     private final TransactionMapper transactionMapper;
@@ -71,13 +73,15 @@ public class TransactionPollingScheduler {
         // Mettre à jour la souscription
         SubscriptionEntity subscription = entity.getSubscription();
         if (verified.getStatus() == TransactionStatus.SUCCESS) {
-            subscription.setStatus(SubscriptionStatus.RUNNING);
-        } else {
-            subscription.setStatus(SubscriptionStatus.CANCELED);
+            // Achat individuel → activation ; achat groupé → génération des codes.
+            // La notification de succès est émise par le use case lui-même :
+            // ne pas la doubler ici.
+            processSuccessfulPaymentUseCase.execute(subscription.getId());
+            return;
         }
-        subscriptionRepository.save(subscription);
 
-        // Notifier l'utilisateur
+        subscription.setStatus(SubscriptionStatus.PAYMENT_FAILED);
+        subscriptionRepository.save(subscription);
         notifyUser(entity, verified.getStatus());
     }
 

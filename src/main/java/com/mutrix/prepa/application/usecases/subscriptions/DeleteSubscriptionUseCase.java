@@ -10,5 +10,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class DeleteSubscriptionUseCase {
     private final SubscriptionServices subscriptionServices;
+
+    /** Accès admin — suppression sans vérification d'ownership. */
     public void execute(UUID id) { subscriptionServices.delete(id); }
+
+    /** Accès utilisateur — vérifie ownership et interdit la suppression d'une souscription RUNNING. */
+    public void executeByUser(UUID id, UUID userId) { subscriptionServices.deleteByIdAndUser(id, userId); }
 }

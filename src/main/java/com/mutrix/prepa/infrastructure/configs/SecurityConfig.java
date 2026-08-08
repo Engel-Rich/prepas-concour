@@ -55,6 +55,8 @@ public class SecurityConfig {
                         // avant que le CORS filter réponde avec les bons headers
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/auth/**").permitAll()
+                        // webhooks fournisseurs de paiement — sécurisés par signature interne
+                        .requestMatchers("/webhooks/**").permitAll()
                         // actuator
                         .requestMatchers("/actuator/**").permitAll()
                         // Swagger

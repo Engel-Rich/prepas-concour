@@ -4,6 +4,8 @@ import com.mutrix.prepa.application.dto.commandes.users.CreateFirebaseUserDto;
 import com.mutrix.prepa.domaines.models.FirebaseUser;
 import com.mutrix.prepa.domaines.models.UserModel;
 
+import java.util.Optional;
+
 public interface FirebaseService {
     public FirebaseUser createUser(CreateFirebaseUserDto createFirebaseUserDto);
 
@@ -15,9 +17,9 @@ public interface FirebaseService {
 
     public FirebaseUser getUserByUid(String uid);
 
-    public FirebaseUser getUserByEmail(String email);
+    public Optional<FirebaseUser> getUserByEmail(String email);
 
-    public FirebaseUser getByPhoneNumber(String phoneNumber);
+    public Optional<FirebaseUser> getByPhoneNumber(String phoneNumber);
 
     public FirebaseUser verifyIdToken(String token);
 

@@ -81,13 +81,19 @@ public class CoursResponse {
     private Map<String, Object> metadata;
 
     public static CoursResponse fromDomain(Cours cours) {
+        return fromDomain(cours, true);
+    }
+
+    public static CoursResponse fromDomain(Cours cours, boolean hasAccess) {
+        boolean gratuit = Boolean.TRUE.equals(cours.getGratuit());
+        String videoUrl = (gratuit || hasAccess) ? cours.getVideoUrl() : null;
         return CoursResponse.builder()
                 .id(cours.getId())
                 .title(cours.getTitle())
                 .body(cours.getBody())
-                .videoUrl(cours.getVideoUrl())
+                .videoUrl(videoUrl)
                 .matiereId(cours.getMatiereId())
-                .gratuit(cours.getGratuit() != null ? cours.getGratuit() : false)
+                .gratuit(gratuit)
                 .userId(cours.getUserId())
                 .isActive(cours.getIsActive())
                 .createdAt(cours.getCreatedAt())

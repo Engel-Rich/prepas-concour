@@ -1,5 +1,7 @@
 package com.mutrix.prepa.application.usecases.auth;
 
+import com.mutrix.prepa.domaines.valueobjects.NotificationType;
+
 import java.util.List;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -35,11 +37,28 @@ public class CompleteRegistrationUseCase {
         try {
             final Roles roles = rolesServices.getRoleByName("USER");
             OtpSession validatedSession = otpSessionService.validateOtp(dto.getOtpSessionId(),
-                    String.valueOf(dto.getOtp()));
+                    String.format("%06d", dto.getOtp()));
+            // Récupère le canal utilisé pour l'OTP depuis les métadonnées de session
+            String channelStr = validatedSession.getMetadata() != null
+                    ? (String) validatedSession.getMetadata().getOrDefault("channel", "EMAIL")
+                    : "EMAIL";
+            NotificationType channel = NotificationType.valueOf(channelStr);
+            boolean verifiedByEmail = channel == NotificationType.EMAIL;
+            boolean verifiedByPhone = channel == NotificationType.SMS || channel == NotificationType.WHATSAPP;
+
+            String rawPhone = validatedSession.getPhone();
+            String phone = null;
+            if (rawPhone != null) {
+                // Le mobile envoie déjà le numéro en format international (+CC + numéro local)
+                String digits = rawPhone.replaceAll("[^0-9]", "");
+                if (digits.startsWith("00")) digits = digits.substring(2);
+                phone = "+" + digits;
+            }
+
             CreateFirebaseUserDto createFirebaseUserDto = CreateFirebaseUserDto.builder()
                     .email(validatedSession.getEmail())
                     .password(dto.getPassword().toString())
-                    .phoneNumber(validatedSession.getPhone())
+                    .phoneNumber(phone)
                     .displayName(validatedSession.getFullName())
                     .build();
             FirebaseUser firebaseUser = firebaseService.createUser(createFirebaseUserDto);
@@ -51,6 +70,8 @@ public class CompleteRegistrationUseCase {
                     .firebaseUid(firebaseUser.getUid())
                     .passwordHash(passwordEncoder.encode(dto.getPassword().toString()))
                     .metadata(firebaseUser.getMetadata())
+                    .hasEmailVerified(verifiedByEmail)
+                    .hasPhoneVerified(verifiedByPhone)
                     .roles(List.of(roles))
                     .build();
             UserModel savedUser = usersServices.createUser(userModel);

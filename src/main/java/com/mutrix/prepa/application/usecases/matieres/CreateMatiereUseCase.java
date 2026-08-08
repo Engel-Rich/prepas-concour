@@ -10,12 +10,13 @@ import lombok.RequiredArgsConstructor;
 public class CreateMatiereUseCase {
     private final MatiereServices matiereServices;
 
-    public Matieres execute(String name, String description, Boolean isActive, String logoUrl) {
+    public Matieres execute(String name, String description, Boolean isActive, String logoUrl, Integer dureeNecessaireMinutes) {
         final Matieres matieres = Matieres.builder()
                 .name(name)
                 .description(description)
                 .isActive(isActive != null ? isActive : true)
                 .logoUrl(logoUrl)
+                .dureeNecessaireMinutes(dureeNecessaireMinutes)
                 .build();
         return matiereServices.createMatiere(matieres);
     }

@@ -41,7 +41,8 @@ public class TransactionController {
     })
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponseFormat<TransactionResponse>> getById(@PathVariable UUID id) {
-        return ResponseEntity.ok(ApiResponseFormat.fromResponse(getTransactionByIdUseCase.execute(id)));
+        UUID userId = getAuthenticatedUserId();
+        return ResponseEntity.ok(ApiResponseFormat.fromResponse(getTransactionByIdUseCase.execute(id, userId)));
     }
 
     @Operation(summary = "Lister mes transactions", description = "Retourne la liste paginée des transactions de l'utilisateur connecté")

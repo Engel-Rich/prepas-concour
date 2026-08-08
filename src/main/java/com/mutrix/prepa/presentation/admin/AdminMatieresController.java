@@ -81,10 +81,11 @@ public class AdminMatieresController {
             @RequestParam("name") String name,
             @RequestParam(value = "description", required = false) String description,
             @RequestParam(value = "isActive", required = false) Boolean isActive,
-            @RequestParam(value = "logo", required = false) MultipartFile logo) {
+            @RequestParam(value = "logo", required = false) MultipartFile logo,
+            @RequestParam(value = "dureeNecessaireMinutes", required = false) Integer dureeNecessaireMinutes) {
 
         String logoUrl = (logo != null && !logo.isEmpty()) ? minioService.uploadFile(logo, "matieres") : null;
-        Matieres matieres = createMatiereUseCase.execute(name, description, isActive, logoUrl);
+        Matieres matieres = createMatiereUseCase.execute(name, description, isActive, logoUrl, dureeNecessaireMinutes);
         return ResponseEntity.status(201).body(ApiResponseFormat.fromResponse(toDto(matieres)));
     }
 
@@ -98,14 +99,15 @@ public class AdminMatieresController {
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponseFormat<MatiereResponseDto>> update(
             @Parameter(description = "UUID de la matière") @PathVariable UUID id,
-            @RequestParam(value = "name",        required = false) String name,
-            @RequestParam(value = "description", required = false) String description,
-            @RequestParam(value = "isActive",    required = false) Boolean isActive,
-            @RequestParam(value = "logo",        required = false) MultipartFile logo) {
+            @RequestParam(value = "name",                    required = false) String name,
+            @RequestParam(value = "description",             required = false) String description,
+            @RequestParam(value = "isActive",                required = false) Boolean isActive,
+            @RequestParam(value = "logo",                    required = false) MultipartFile logo,
+            @RequestParam(value = "dureeNecessaireMinutes",  required = false) Integer dureeNecessaireMinutes) {
 
         String logoUrl = (logo != null && !logo.isEmpty()) ? minioService.uploadFile(logo, "matieres") : null;
         return ResponseEntity.ok(ApiResponseFormat.fromResponse(
-                toDto(updateMatiereUseCase.execute(id, name, description, isActive, logoUrl))));
+                toDto(updateMatiereUseCase.execute(id, name, description, isActive, logoUrl, dureeNecessaireMinutes))));
     }
 
     @Operation(summary = "Supprimer une matière")
@@ -130,6 +132,7 @@ public class AdminMatieresController {
                 .createdAt(m.getCreatedAt())
                 .updatedAt(m.getUpdatedAt())
                 .isActive(m.getIsActive())
+                .dureeNecessaireMinutes(m.getDureeNecessaireMinutes())
                 .metadata(m.getMetadata())
                 .build();
     }

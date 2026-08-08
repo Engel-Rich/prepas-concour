@@ -53,8 +53,12 @@ minio:
 payment:
   campay:
     url:      ${CAMPAY_URL:https://demo.campay.net/api}
-    username: ${CAMPAY_USERNAME:demo_username}
-    password: ${CAMPAY_PASSWORD:demo_password}
+    username: ${CAMPAY_USERNAME:""}
+    password: ${CAMPAY_PASSWORD:""}
+  mundi_pay:
+    api_key: ""
+    api_secret: ''
+    url: ""
 
 mail:
   resend:
@@ -64,9 +68,12 @@ mail:
 
 sms:
   monprof:
-    apiKey:   ${MONPROF_SMS_API_KEY:placeholder}
-    apiSecret: ${MONPROF_SMS_API_SECRET:placeholder}
-    senderId: ${MONPROF_SMS_SENDER_ID:Prepa}
+    apiKey:   ${MONPROF_SMS_API_KEY:1A3F40E3-134F-4B9E-85AC-EB06B35543A5}
+    apiSecret: ${MONPROF_SMS_API_SECRET:nfJYMWhsY3chPHHKF4EhgqQdpXJQxV30ErwJSvfGtJy3kQ3DAwnc0}
+    senderId: ${MONPROF_SMS_SENDER_ID:MonProf}
 
 firebase:
   service-account-json: ${FIREBASE_SERVICE_ACCOUNT_JSON:}
+#  MONPROF_SMS_API_KEY=nfJYMWhsY3chPHHKF4EhgqQdpXJQxV30ErwJSvfGtJy3kQ3DAwnc0
+#  MONPROF_SMS_API_SECRET=1A3F40E3-134F-4B9E-85AC-EB06B35543A5
+#  MONPROF_SMS_SENDER_ID=MonProf

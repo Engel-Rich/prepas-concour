@@ -44,6 +44,12 @@ public class MatiereResponseDto {
     private Boolean isActive;
 
     @Schema(
+            description = "Durée nécessaire estimée pour maîtriser la matière, en minutes",
+            example = "120"
+    )
+    private Integer dureeNecessaireMinutes;
+
+    @Schema(
             description = "Date et heure de création de la matière",
             example = "2026-02-16T10:15:30"
     )

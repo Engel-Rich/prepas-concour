@@ -14,6 +14,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -95,10 +97,94 @@ public class SubscriptionServiceImplement implements SubscriptionServices {
     }
 
     @Override
+    public Subscription getByIdAndUser(String id, UUID userId) {
+        SubscriptionEntity entity = subscriptionRepository.findById(UUID.fromString(id))
+                .orElseThrow(() -> new EntityNotFoundException("Souscription introuvable avec l'id : " + id));
+        if (!entity.getUser().getId().equals(userId)) {
+            throw new EntityNotFoundException("Souscription introuvable avec l'id : " + id);
+        }
+        return subscriptionMapper.toModel(entity);
+    }
+
+    @Override
     public void delete(UUID id) {
         if (!subscriptionRepository.existsById(id)) {
             throw new EntityNotFoundException("Subscription introuvable avec l'id : " + id);
         }
         subscriptionRepository.deleteById(id);
+    }
+
+    @Override
+    public void deleteByIdAndUser(UUID id, UUID userId) {
+        SubscriptionEntity entity = subscriptionRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Souscription introuvable avec l'id : " + id));
+        if (!entity.getUser().getId().equals(userId)) {
+            throw new EntityNotFoundException("Souscription introuvable avec l'id : " + id);
+        }
+        if (entity.getStatus() == com.mutrix.prepa.domaines.valueobjects.SubscriptionStatus.RUNNING) {
+            throw new IllegalStateException("Impossible de supprimer une souscription active");
+        }
+        subscriptionRepository.deleteById(id);
+    }
+
+    @Override
+    public boolean hasActiveSubscription(UUID userId, UUID sessionId) {
+        return subscriptionRepository.existsByUser_IdAndSessions_IdAndStatus(
+                userId, sessionId, SubscriptionStatus.RUNNING);
+    }
+
+    @Override
+    public boolean hasActiveSubscriptionForSessions(UUID userId, List<UUID> sessionIds) {
+        return subscriptionRepository.existsByUser_IdAndSessions_IdInAndStatus(
+                userId, sessionIds, SubscriptionStatus.RUNNING);
+    }
+
+    @Override
+    public boolean hasOngoingSubscription(UUID userId, UUID sessionId) {
+        return subscriptionRepository.existsByUser_IdAndSessions_IdAndStatusIn(
+                userId, sessionId,
+                List.of(SubscriptionStatus.INITIATE, SubscriptionStatus.PENDING, SubscriptionStatus.RUNNING));
+    }
+
+    @Override
+    public void activate(UUID subscriptionId) {
+        Subscription sub = getById(subscriptionId.toString());
+        sub.setStatus(SubscriptionStatus.RUNNING);
+        save(sub);
+    }
+
+    @Override
+    public void cancel(UUID subscriptionId) {
+        Subscription sub = getById(subscriptionId.toString());
+        sub.setStatus(SubscriptionStatus.CANCELED);
+        save(sub);
+    }
+
+    @Override
+    public Optional<Subscription> findOngoingSubscription(UUID userId, UUID sessionId) {
+        return subscriptionRepository.findFirstByUser_IdAndSessions_IdAndStatusInOrderByCreatedAtDesc(
+                        userId, sessionId,
+                        List.of(SubscriptionStatus.INITIATE, SubscriptionStatus.PENDING))
+                .map(subscriptionMapper::toModel);
+    }
+
+    @Override
+    public void markPaymentFailed(UUID subscriptionId) {
+        Subscription sub = getById(subscriptionId.toString());
+        // Un webhook d'échec livré en retard ne doit jamais révoquer un accès
+        // déjà payé et honoré (activation ou codes émis).
+        if (sub.getStatus() == SubscriptionStatus.RUNNING
+                || sub.getStatus() == SubscriptionStatus.CODES_ISSUED) {
+            return;
+        }
+        sub.setStatus(SubscriptionStatus.PAYMENT_FAILED);
+        save(sub);
+    }
+
+    @Override
+    public void markCodesIssued(UUID subscriptionId) {
+        Subscription sub = getById(subscriptionId.toString());
+        sub.setStatus(SubscriptionStatus.CODES_ISSUED);
+        save(sub);
     }
 }

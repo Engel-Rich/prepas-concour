@@ -41,6 +41,12 @@ public class TransactionServiceImplement implements TransactionServices {
     }
 
     @Override
+    public Optional<Transaction> findLatestBySubscriptionId(UUID subscriptionId) {
+        return transactionRepository.findTopBySubscription_IdOrderByCreatedAtDesc(subscriptionId)
+                .map(transactionMapper::toModel);
+    }
+
+    @Override
     public List<Transaction> findAllPending() {
         return transactionRepository.findAllPendingWithProvider(TransactionStatus.PENDING)
                 .stream().map(transactionMapper::toModel).toList();

@@ -6,6 +6,7 @@ import com.mutrix.prepa.application.usecases.cours.GetCoursByMatiereUseCase;
 import com.mutrix.prepa.application.usecases.cours.GetCoursUseCase;
 import com.mutrix.prepa.cors.ApiResponseFormat;
 import com.mutrix.prepa.cors.PageResponse;
+import com.mutrix.prepa.infrastructure.security.SecurityUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -14,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -28,14 +30,17 @@ public class CoursController {
     private final GetAllCoursUseCase getAllCoursUseCase;
     private final GetCoursByMatiereUseCase getCoursByMatiereUseCase;
 
-    @Operation(summary = "Obtenir un cours par ID", description = "Retourne les détails d'un cours spécifique")
+    @Operation(summary = "Obtenir un cours par ID", description = "Retourne les détails d'un cours spécifique. Le videoUrl est masqué si l'utilisateur n'a pas de souscription active.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Cours trouvé"),
             @ApiResponse(responseCode = "404", description = "Cours introuvable"),
     })
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponseFormat<CoursResponse>> getCoursById(@PathVariable UUID id) {
-        CoursResponse response = getCoursUseCase.execute(id);
+    public ResponseEntity<ApiResponseFormat<CoursResponse>> getCoursById(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal SecurityUser securityUser) {
+        UUID userId = securityUser != null ? securityUser.getUser().getId() : null;
+        CoursResponse response = getCoursUseCase.execute(id, userId);
         return ResponseEntity.ok(ApiResponseFormat.fromResponse(response));
     }
 

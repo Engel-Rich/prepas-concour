@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface SubscriptionRepository extends JpaRepository<SubscriptionEntity, UUID> {
@@ -35,4 +36,14 @@ public interface SubscriptionRepository extends JpaRepository<SubscriptionEntity
     /** Concours distincts auxquels un utilisateur est abonné (via ses sessions). */
     @Query("SELECT DISTINCT sub.sessions.concours FROM SubscriptionEntity sub WHERE sub.user.id = :userId")
     List<ConcoursEntity> findDistinctConcoursByUserId(@Param("userId") UUID userId);
+
+    boolean existsByUser_IdAndSessions_IdAndStatus(UUID userId, UUID sessionId, SubscriptionStatus status);
+
+    boolean existsByUser_IdAndSessions_IdInAndStatus(UUID userId, List<UUID> sessionIds, SubscriptionStatus status);
+
+    boolean existsByUser_IdAndSessions_IdAndStatusIn(UUID userId, UUID sessionId, List<SubscriptionStatus> statuses);
+
+    /** Dernière souscription INITIATE ou PENDING pour un user + session, triée par date de création desc. */
+    Optional<SubscriptionEntity> findFirstByUser_IdAndSessions_IdAndStatusInOrderByCreatedAtDesc(
+            UUID userId, UUID sessionId, List<SubscriptionStatus> statuses);
 }

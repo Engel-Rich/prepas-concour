@@ -13,6 +13,8 @@ import com.mutrix.prepa.domaines.valueobjects.NotificationType;
 import com.mutrix.prepa.domaines.valueobjects.OtpType;
 import com.mutrix.prepa.infrastructure.services.NotificationServiceImplement;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
@@ -20,6 +22,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @UseCase
 public class InitiateLoginUseCase {
+    private static final Logger log = LoggerFactory.getLogger(InitiateLoginUseCase.class);
     private final UsersServices usersServices;
     private final OtpSessionService otpSessionService;
     private final NotificationServiceImplement notificationService;
@@ -72,6 +75,7 @@ public class InitiateLoginUseCase {
     }
 
     private void sendOtp(NotificationType channel, String email, String phone, String fullName, String otp) {
+        log.info("Sending OTP {} for {} to {}", otp, fullName, email);
         switch (channel) {
             case EMAIL   -> notificationService.sendOtpEmail(email, otp, fullName);
             case SMS     -> notificationService.sendOtpSms(phone, otp);

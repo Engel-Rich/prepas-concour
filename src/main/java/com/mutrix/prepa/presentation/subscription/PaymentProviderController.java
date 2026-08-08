@@ -22,6 +22,15 @@ public class PaymentProviderController {
 
     private final GetPaymentProviderUseCase getPaymentProviderUseCase;
 
+    @Operation(summary = "Lister tous les fournisseurs de paiement")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Liste récupérée"),
+    })
+    @GetMapping
+    public ResponseEntity<ApiResponseFormat<List<PaymentProviderResponse>>> list() {
+        return ResponseEntity.ok(ApiResponseFormat.fromResponse(getPaymentProviderUseCase.executeList()));
+    }
+
     @Operation(summary = "Obtenir un fournisseur par ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Fournisseur trouvé"),
@@ -32,12 +41,5 @@ public class PaymentProviderController {
         return ResponseEntity.ok(ApiResponseFormat.fromResponse(getPaymentProviderUseCase.executeById(id)));
     }
 
-    @Operation(summary = "Lister tous les fournisseurs de paiement")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Liste récupérée"),
-    })
-    @GetMapping
-    public ResponseEntity<ApiResponseFormat<List<PaymentProviderResponse>>> list() {
-        return ResponseEntity.ok(ApiResponseFormat.fromResponse(getPaymentProviderUseCase.executeList()));
-    }
+
 }

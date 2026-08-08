@@ -20,6 +20,7 @@ public class Matieres {
     private String description;
     private String logoUrl;
     private Boolean isActive;
+    private Integer dureeNecessaireMinutes;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Map<String, Object> metadata;

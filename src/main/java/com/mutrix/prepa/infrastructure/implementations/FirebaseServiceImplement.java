@@ -2,6 +2,7 @@ package com.mutrix.prepa.infrastructure.implementations;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +45,8 @@ public class FirebaseServiceImplement implements FirebaseService {
                 request.setDisplayName(createFirebaseUserDto.getDisplayName());
             }
             if (createFirebaseUserDto.getPhoneNumber() != null && !createFirebaseUserDto.getPhoneNumber().isEmpty()) {
-                request.setPhoneNumber(createFirebaseUserDto.getPhoneNumber());
+                String phone = createFirebaseUserDto.getPhoneNumber().startsWith("+237") ? createFirebaseUserDto.getPhoneNumber():"+237"+createFirebaseUserDto.getPhoneNumber().trim();
+                request.setPhoneNumber(phone);
             }
             if (createFirebaseUserDto.getEmail() != null && !createFirebaseUserDto.getEmail().isEmpty()) {
                 request.setEmail(createFirebaseUserDto.getEmail());
@@ -85,11 +87,12 @@ public class FirebaseServiceImplement implements FirebaseService {
     @Override
     public FirebaseUser updateUser(String uid, CreateFirebaseUserDto dto) {
         try {
+            String phone = dto.getPhoneNumber()==null? null: dto.getPhoneNumber().startsWith("+237") ? dto.getPhoneNumber():"+237"+dto.getPhoneNumber().trim();
             final UserRecord record = FirebaseAuth.getInstance().getUser(uid);
             UserRecord.UpdateRequest request = new UserRecord.UpdateRequest(uid)
                     .setDisplayName(dto.getDisplayName() != null ? dto.getDisplayName() : record.getDisplayName())
                     .setEmail(dto.getEmail() != null ? dto.getEmail() : record.getEmail())
-                    .setPhoneNumber(dto.getPhoneNumber() != null ? dto.getPhoneNumber() : record.getPhoneNumber())
+                    .setPhoneNumber(phone != null ? phone : record.getPhoneNumber())
                     .setPhotoUrl(dto.getPhotoUrl() != null ? dto.getPhotoUrl() : record.getPhotoUrl())
                     .setEmailVerified(dto.getEmailVerified() != null ? dto.getEmailVerified() : record.isEmailVerified())
                     .setDisabled(dto.getDisabled() != null ? dto.getDisabled() : record.isDisabled());
@@ -181,29 +184,29 @@ public class FirebaseServiceImplement implements FirebaseService {
     }
 
     @Override
-    public FirebaseUser getUserByEmail(String email) {
+    public Optional<FirebaseUser> getUserByEmail(String email) {
         try {
             final UserRecord record = FirebaseAuth.getInstance().getUserByEmail(email);
-            return this.mapToFirebaseUser(record);
+            return Optional.of(this.mapToFirebaseUser(record));
         } catch (FirebaseException e) {
             log.error("Error fetching user: {}, Code : {}", e.getMessage(), e.getErrorCode());
         } catch (Exception e) {
             log.error("Error fetching user: {}", e.getMessage());
         }
-        return null;
+        return Optional.empty();
     }
 
     @Override
-    public FirebaseUser getByPhoneNumber(String phoneNumber) {
+    public Optional<FirebaseUser> getByPhoneNumber(String phoneNumber) {
         try {
             final UserRecord record = FirebaseAuth.getInstance().getUserByPhoneNumber(phoneNumber);
-            return this.mapToFirebaseUser(record);
+            return Optional.of(this.mapToFirebaseUser(record));
         } catch (FirebaseException e) {
             log.error("Error fetching user: {}, Code : {}", e.getMessage(), e.getErrorCode());
         } catch (Exception e) {
             log.error("Error fetching user: {}", e.getMessage());
         }
-        return null;
+        return Optional.empty();
     }
 
     @Override

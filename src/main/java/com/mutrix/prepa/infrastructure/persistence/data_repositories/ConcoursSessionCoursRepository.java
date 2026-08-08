@@ -2,6 +2,8 @@ package com.mutrix.prepa.infrastructure.persistence.data_repositories;
 
 import com.mutrix.prepa.infrastructure.persistence.entities.ConcoursSessionCoursEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,4 +18,7 @@ public interface ConcoursSessionCoursRepository extends JpaRepository<ConcoursSe
     boolean existsBySession_IdAndCours_Id(UUID sessionId, UUID coursId);
 
     void deleteBySession_IdAndCours_Id(UUID sessionId, UUID coursId);
+
+    @Query("SELECT csc.session.id FROM ConcoursSessionCoursEntity csc WHERE csc.cours.id = :coursId")
+    List<UUID> findSessionIdsByCours_Id(@Param("coursId") UUID coursId);
 }
