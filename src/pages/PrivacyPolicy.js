@@ -3,13 +3,16 @@ import { Container } from 'react-bootstrap';
 
 const PrivacyPolicy = () => {
     return (
-        <Container className="py-5">
-            <h1 className="text-center section-title mb-5">Politique de Confidentialité</h1>
+        <main className="legal-page">
+        <Container className="py-5 legal-content">
+            <p className="legal-kicker">Informations légales</p>
+            <h1>Politique de confidentialité</h1>
+            <p className="legal-intro">Dernière mise à jour : 16 août 2026</p>
 
             <section className="mb-4">
                 <h2>1. Introduction</h2>
                 <p>
-                    Prépa Concours s'engage à protéger votre vie privée. Cette politique de confidentialité
+                    Prépa Concours s’engage à protéger votre vie privée. Cette politique de confidentialité
                     explique comment nous collectons, utilisons et protégeons vos informations personnelles.
                 </p>
             </section>
@@ -69,11 +72,12 @@ const PrivacyPolicy = () => {
                 <h2>7. Contact</h2>
                 <p>
                     Pour toute question concernant cette politique de confidentialité,
-                    veuillez nous contacter à l'adresse : privacy@prepaconcours.com
+                    veuillez nous contacter à l’adresse : contact@mutrix.org
                 </p>
             </section>
         </Container>
+        </main>
     );
 };
 
-export default PrivacyPolicy; 
+export default PrivacyPolicy;

@@ -1,65 +1,48 @@
 import React from 'react';
-import { Container, Row, Col } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import { FaFacebook, FaTwitter, FaLinkedin, FaInstagram, FaApple, FaGooglePlay } from 'react-icons/fa';
+import { FaApple, FaEnvelope, FaGooglePlay, FaGraduationCap } from 'react-icons/fa';
 
-const Footer = () => {
-    return (
-        <footer className="mt-5">
-            <Container>
-                <Row>
-                    <Col md={4} className="mb-4">
-                        <h5>Prépa Concours</h5>
-                        <p>
-                            Votre partenaire de confiance pour la préparation aux concours.
-                            Une formation de qualité pour votre réussite.
-                        </p>
-                        <div className="app-download-buttons mt-3">
-                            <a href="#" className="btn btn-dark me-2 mb-2">
-                                <FaApple className="me-2" />
-                                App Store
-                            </a>
-                            <a href="#" className="btn btn-dark mb-2">
-                                <FaGooglePlay className="me-2" />
-                                Google Play
-                            </a>
-                        </div>
-                    </Col>
+const Footer = () => (
+    <footer className="site-footer">
+        <div className="site-container footer-grid">
+            <div className="footer-brand">
+                <Link className="brand brand--footer" to="/">
+                    <span className="brand-mark"><FaGraduationCap /></span>
+                    <span className="brand-copy"><strong>Prépa</strong> Concours<small>Réussir ensemble</small></span>
+                </Link>
+                <p>Une application pensée pour vous aider à organiser vos révisions et avancer avec confiance vers votre concours.</p>
+                <a className="footer-email" href="mailto:contact@mutrix.org"><FaEnvelope /> contact@mutrix.org</a>
+            </div>
 
-                    <Col md={4} className="mb-4">
-                        <h5>Liens Rapides</h5>
-                        <ul className="list-unstyled">
-                            <li><Link to="/" className="text-white">Accueil</Link></li>
-                            <li><Link to="/about" className="text-white">À propos</Link></li>
-                            <li><Link to="/contact" className="text-white">Contact</Link></li>
-                        </ul>
-                    </Col>
+            <div className="footer-column">
+                <h2>Découvrir</h2>
+                <Link to="/#fonctionnalites">Fonctionnalités</Link>
+                <Link to="/#parcours">Votre parcours</Link>
+                <Link to="/#application">L’application</Link>
+                <Link to="/#telecharger">Télécharger</Link>
+            </div>
 
-                    <Col md={4} className="mb-4">
-                        <h5>Légal</h5>
-                        <ul className="list-unstyled">
-                            <li><Link to="/privacy-policy" className="text-white">Politique de Confidentialité</Link></li>
-                            <li><Link to="/terms-of-service" className="text-white">Conditions d'Utilisation</Link></li>
-                        </ul>
-                    </Col>
-                </Row>
+            <div className="footer-column">
+                <h2>Prépa Concours</h2>
+                <Link to="/about">À propos</Link>
+                <Link to="/contact">Contact</Link>
+                <Link to="/privacy-policy">Confidentialité</Link>
+                <Link to="/terms-of-service">Conditions d’utilisation</Link>
+            </div>
 
-                <Row className="mt-4">
-                    <Col className="text-center">
-                        <div className="social-icons">
-                            <a href="#" className="text-white me-3"><FaFacebook /></a>
-                            <a href="#" className="text-white me-3"><FaTwitter /></a>
-                            <a href="#" className="text-white me-3"><FaLinkedin /></a>
-                            <a href="#" className="text-white"><FaInstagram /></a>
-                        </div>
-                        <p className="mt-3 mb-0">
-                            &copy; {new Date().getFullYear()} Prépa Concours. Tous droits réservés.
-                        </p>
-                    </Col>
-                </Row>
-            </Container>
-        </footer>
-    );
-};
+            <div className="footer-column footer-download">
+                <h2>Télécharger l’app</h2>
+                <p>Commencez votre préparation depuis votre téléphone.</p>
+                <a href="https://apps.apple.com/ca/app/monprof-mutrix/id6753905724" target="_blank" rel="noreferrer"><FaApple /> App Store</a>
+                <a href="https://play.google.com/store/apps/details?id=mutrix.app.concours" target="_blank" rel="noreferrer"><FaGooglePlay /> Google Play</a>
+            </div>
+        </div>
 
-export default Footer; 
+        <div className="site-container footer-bottom">
+            <p>© {new Date().getFullYear()} Prépa Concours. Tous droits réservés.</p>
+            <p>Une solution Mutrix</p>
+        </div>
+    </footer>
+);
+
+export default Footer;

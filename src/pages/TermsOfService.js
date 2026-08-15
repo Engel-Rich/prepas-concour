@@ -3,8 +3,11 @@ import { Container } from 'react-bootstrap';
 
 const TermsOfService = () => {
     return (
-        <Container className="py-5">
-            <h1 className="text-center section-title mb-5">Conditions d'Utilisation</h1>
+        <main className="legal-page">
+        <Container className="py-5 legal-content">
+            <p className="legal-kicker">Informations légales</p>
+            <h1>Conditions d’utilisation</h1>
+            <p className="legal-intro">Dernière mise à jour : 16 août 2026</p>
 
             <section className="mb-4">
                 <h2>1. Acceptation des Conditions</h2>
@@ -21,10 +24,10 @@ const TermsOfService = () => {
                     Prépa Concours propose des services de préparation aux concours, notamment :
                 </p>
                 <ul>
-                    <li>Formations en présentiel et en ligne</li>
-                    <li>Accompagnement personnalisé</li>
-                    <li>Ressources pédagogiques</li>
-                    <li>Simulations d'épreuves</li>
+                    <li>Parcours numériques de préparation</li>
+                    <li>Cours, vidéos et ressources pédagogiques</li>
+                    <li>Gestion des accès et abonnements</li>
+                    <li>Services d’assistance liés à l’application</li>
                 </ul>
             </section>
 
@@ -77,11 +80,12 @@ const TermsOfService = () => {
                 <h2>8. Contact</h2>
                 <p>
                     Pour toute question concernant ces conditions d'utilisation,
-                    veuillez nous contacter à l'adresse : legal@prepaconcours.com
+                    veuillez nous contacter à l’adresse : contact@mutrix.org
                 </p>
             </section>
         </Container>
+        </main>
     );
 };
 
-export default TermsOfService; 
+export default TermsOfService;
