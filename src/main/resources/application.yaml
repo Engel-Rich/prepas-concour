@@ -46,6 +46,8 @@ management:
 
 minio:
   url:         ${MINIO_URL:http://localhost:9000}
+  endpoint:    ${MINIO_ENDPOINT:http://localhost:9000}
+  public-url:  ${MINIO_PUBLIC_URL:http://localhost:9000}
   bucket-name: ${MINIO_BUCKET:prepasbucket}
   access-key:  ${MINIO_ACCESS_KEY:prepa-db-root}
   secret-key:  ${MINIO_SECRET_KEY:prepa-db-pass}

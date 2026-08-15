@@ -21,8 +21,8 @@ public class MinioService {
     @Value("${minio.bucket-name}")
     private String bucketName;
 
-    @Value("${minio.url}")
-    private String minioUrl;
+    @Value("${minio.public-url}")
+    private String minioPublicUrl;
 
     /**
      * Policy S3 qui autorise la lecture publique (GET) sur tous les objets du bucket.
@@ -109,7 +109,9 @@ public class MinioService {
                             .contentType(file.getContentType())
                             .build());
 
-            String url = minioUrl + "/" + bucketName + "/" + objectName;
+//            String url = minioPublicUrl + "/" + bucketName + "/" + objectName;
+            String publicBaseUrl = minioPublicUrl.replaceAll("/+$", "");
+            String url = publicBaseUrl + "/" + bucketName + "/" + objectName;
             log.info("Fichier uploadé sur MinIO : {}", url);
             return url;
 
