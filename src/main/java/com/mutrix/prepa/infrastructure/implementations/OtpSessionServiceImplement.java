@@ -24,7 +24,7 @@ public class OtpSessionServiceImplement implements OtpSessionService {
     public OtpSession createOtpSession(OtpSession otpSession, String clearOtp) {
         String otpHash = passwordEncoder.encode(clearOtp);
         otpSession.setOtpHash(otpHash);
-        otpSession.setExpiresAt(System.currentTimeMillis() + 60 * 1000); // OTP expires in 5 minutes
+        otpSession.setExpiresAt(System.currentTimeMillis() + 60 * 1000*3); // OTP expires in 5 minutes
         final OtpSessionEntity entity = OtpSessionsMapper.toEntity(otpSession);
         final OtpSessionEntity savedEntity = otpSessionRepository.save(entity);
         return OtpSessionsMapper.toDomain(savedEntity);
