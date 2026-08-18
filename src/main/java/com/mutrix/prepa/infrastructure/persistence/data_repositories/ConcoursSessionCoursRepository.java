@@ -13,6 +13,10 @@ public interface ConcoursSessionCoursRepository extends JpaRepository<ConcoursSe
 
     List<ConcoursSessionCoursEntity> findBySession_Id(UUID sessionId);
 
+    List<ConcoursSessionCoursEntity> findBySession_IdAndCours_Matiere_Id(
+            UUID sessionId,
+            UUID matiereId);
+
     Optional<ConcoursSessionCoursEntity> findBySession_IdAndCours_Id(UUID sessionId, UUID coursId);
 
     boolean existsBySession_IdAndCours_Id(UUID sessionId, UUID coursId);

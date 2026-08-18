@@ -117,4 +117,25 @@ public class ConcoursSessionController {
         List<CoursResponse> response = getSessionCoursListUseCase.execute(sessionId, userId);
         return ResponseEntity.ok(ApiResponseFormat.fromResponse(response));
     }
+
+    @Operation(
+            summary = "Lister les cours d'une matière pour une session",
+            description = "Retourne uniquement les cours associés à la session et appartenant à la matière demandée. Le videoUrl est inclus pour les cours gratuits ou si l'utilisateur possède une souscription RUNNING à cette session."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Cours récupérés avec succès, ou liste vide si aucun cours ne correspond"),
+            @ApiResponse(responseCode = "400", description = "UUID invalide")
+    })
+    @GetMapping("/{sessionId}/matieres/{matiereId}/cours")
+    public ResponseEntity<ApiResponseFormat<List<CoursResponse>>> getSessionCoursByMatiere(
+            @Parameter(description = "Identifiant UUID de la session", required = true)
+            @PathVariable UUID sessionId,
+            @Parameter(description = "Identifiant UUID de la matière", required = true)
+            @PathVariable UUID matiereId,
+            @AuthenticationPrincipal SecurityUser securityUser
+    ) {
+        UUID userId = securityUser != null ? securityUser.getUser().getId() : null;
+        List<CoursResponse> response = getSessionCoursListUseCase.execute(sessionId, matiereId, userId);
+        return ResponseEntity.ok(ApiResponseFormat.fromResponse(response));
+    }
 }
