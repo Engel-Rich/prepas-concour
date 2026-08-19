@@ -3,7 +3,7 @@ package com.mutrix.prepa.presentation.subscription;
 import com.mutrix.prepa.application.dto.commandes.subscription.ActivateSubscriptionCodeCommand;
 import com.mutrix.prepa.application.dto.response.subscription.SubscriptionCodeGroupResponse;
 import com.mutrix.prepa.application.dto.response.subscription.SubscriptionCodeResponse;
-import com.mutrix.prepa.application.dto.response.subscription.SubscriptionResponse;
+import com.mutrix.prepa.application.dto.response.subscription.MySubscriptionResponse;
 import com.mutrix.prepa.application.usecases.subscriptions.codes.ActivateSubscriptionCodeUseCase;
 import com.mutrix.prepa.application.usecases.subscriptions.codes.GetMySubscriptionCodesUseCase;
 import com.mutrix.prepa.cors.ApiResponseFormat;
@@ -72,10 +72,12 @@ public class SubscriptionCodeController {
             @ApiResponse(responseCode = "401", description = "Non authentifié"),
     })
     @PostMapping("/activate")
-    public ResponseEntity<ApiResponseFormat<SubscriptionResponse>> activate(
+    public ResponseEntity<ApiResponseFormat<MySubscriptionResponse>> activate(
             @RequestBody @Valid ActivateSubscriptionCodeCommand command) {
         UUID userId = getAuthenticatedUserId();
+        // Projection client : la souscription créée porte dans ses métadonnées
+        // le code consommé, qui n'a pas à repartir vers l'application.
         return ResponseEntity.ok(ApiResponseFormat.fromResponse(
-                activateSubscriptionCodeUseCase.execute(command, userId)));
+                MySubscriptionResponse.from(activateSubscriptionCodeUseCase.execute(command, userId))));
     }
 }

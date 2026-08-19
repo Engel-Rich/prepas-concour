@@ -1,6 +1,7 @@
 package com.mutrix.prepa.presentation.subscription;
 
 import com.mutrix.prepa.application.dto.commandes.subscription.CreateSubscriptionCommand;
+import com.mutrix.prepa.application.dto.response.subscription.MySubscriptionResponse;
 import com.mutrix.prepa.application.dto.response.subscription.SubscriptionResponse;
 import com.mutrix.prepa.application.dto.response.subscription.SubscriptionVerificationResponse;
 import com.mutrix.prepa.application.dto.response.subscription.TransactionResponse;
@@ -69,9 +70,10 @@ public class SubscriptionController {
             @ApiResponse(responseCode = "404", description = "Souscription introuvable"),
     })
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponseFormat<SubscriptionResponse>> getById(@PathVariable String id) {
+    public ResponseEntity<ApiResponseFormat<MySubscriptionResponse>> getById(@PathVariable String id) {
         UUID userId = getAuthenticatedUserId();
-        return ResponseEntity.ok(ApiResponseFormat.fromResponse(getSubscriptionByIdUseCase.execute(id, userId)));
+        return ResponseEntity.ok(ApiResponseFormat.fromResponse(
+                MySubscriptionResponse.from(getSubscriptionByIdUseCase.execute(id, userId))));
     }
 
     @Operation(summary = "Lister mes souscriptions", description = "Retourne les souscriptions de l'utilisateur connecté")
@@ -79,12 +81,13 @@ public class SubscriptionController {
             @ApiResponse(responseCode = "200", description = "Liste récupérée"),
     })
     @GetMapping("/me")
-    public ResponseEntity<ApiResponseFormat<PageResponse<SubscriptionResponse>>> listMine(
+    public ResponseEntity<ApiResponseFormat<PageResponse<MySubscriptionResponse>>> listMine(
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size) {
         UUID userId = getAuthenticatedUserId();
         return ResponseEntity.ok(ApiResponseFormat.fromPage(
-                searchSubscriptionsUseCase.execute(userId.toString(), page, size)));
+                searchSubscriptionsUseCase.execute(userId.toString(), page, size)
+                        .map(MySubscriptionResponse::from)));
     }
 
     @Operation(summary = "Mes souscriptions filtrées par statut")
@@ -92,13 +95,14 @@ public class SubscriptionController {
             @ApiResponse(responseCode = "200", description = "Liste récupérée"),
     })
     @GetMapping("/me/status/{status}")
-    public ResponseEntity<ApiResponseFormat<PageResponse<SubscriptionResponse>>> listMineByStatus(
+    public ResponseEntity<ApiResponseFormat<PageResponse<MySubscriptionResponse>>> listMineByStatus(
             @PathVariable SubscriptionStatus status,
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size) {
         UUID userId = getAuthenticatedUserId();
         return ResponseEntity.ok(ApiResponseFormat.fromPage(
-                searchSubscriptionsUseCase.execute(userId.toString(), status, page, size)));
+                searchSubscriptionsUseCase.execute(userId.toString(), status, page, size)
+                        .map(MySubscriptionResponse::from)));
     }
 
     @Operation(summary = "Récupérer ma souscription pour une session donnée",
@@ -107,13 +111,13 @@ public class SubscriptionController {
             @ApiResponse(responseCode = "200", description = "Résultat retourné (null si pas de souscription)"),
     })
     @GetMapping("/me/session/{sessionId}")
-    public ResponseEntity<ApiResponseFormat<SubscriptionResponse>> getMyBySession(
+    public ResponseEntity<ApiResponseFormat<MySubscriptionResponse>> getMyBySession(
             @PathVariable String sessionId) {
         UUID userId = getAuthenticatedUserId();
         org.springframework.data.domain.Page<SubscriptionResponse> results =
                 searchSubscriptionsUseCase.execute(userId.toString(), sessionId, 0, 1);
         SubscriptionResponse sub = results.isEmpty() ? null : results.getContent().get(0);
-        return ResponseEntity.ok(ApiResponseFormat.fromResponse(sub));
+        return ResponseEntity.ok(ApiResponseFormat.fromResponse(MySubscriptionResponse.from(sub)));
     }
 
     @Operation(summary = "Relancer la vérification de mon paiement",
