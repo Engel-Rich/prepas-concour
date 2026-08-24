@@ -6,6 +6,9 @@ import com.mutrix.prepa.application.dto.response.OtpResponse;
 import com.mutrix.prepa.application.dto.response.UserResponse;
 import com.mutrix.prepa.application.usecases.auth.*;
 import com.mutrix.prepa.cors.ApiResponseFormat;
+import com.mutrix.prepa.domaines.interfaces.DeviceBindingService;
+import com.mutrix.prepa.domaines.valueobjects.DevicePlatform;
+import com.mutrix.prepa.infrastructure.security.DeviceBindingFilter;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -14,16 +17,15 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController()
 @RequestMapping("/auth")
 @Tag(name = "Authentication", description = "Endpoints for user authentication and registration")
 @RequiredArgsConstructor
+@Slf4j
 public class AuthController {
     private final InitiateLoginUseCase initiateLoginUseCase;
     private final RegistrationsInitiateUseCase registrationsInitiateUseCase;
@@ -34,6 +36,9 @@ public class AuthController {
     private final ResendOtpUseCase resendOtpUseCase;
     private final ResetPasswordInitiateUseCase resetPasswordInitiateUseCase;
     private final ResetPasswordValidateUseCase resetPasswordValidateUseCase;
+    private final DeviceBindingService deviceBindingService;
+
+
 
     @Operation(summary = "Initialise la connexion", description = "Vérifie le mot de passe et envoie un code OTP via le canal choisi (EMAIL par défaut si email fourni, SMS sinon)")
     @ApiResponses(value = {
@@ -65,10 +70,19 @@ public class AuthController {
     })
     @PostMapping("/register/complete")
     public ResponseEntity<ApiResponseFormat<AuthResponse>> completeRegistration(
-            @RequestBody(required = true) @Valid CompleteRegistrationDto command) {
+            @RequestBody(required = true) @Valid CompleteRegistrationDto command,
+            @RequestHeader(value = DeviceBindingFilter.DEVICE_ID_HEADER, required = false) String deviceId,
+            @RequestHeader(value = DeviceBindingFilter.PLATFORM_HEADER, required = false) String platform) {
         AuthResponse response = this.completeRegistrationUseCase.execute(command);
+        bindDevice(response, deviceId, platform);
         return ResponseEntity.ok(ApiResponseFormat.fromResponse(response));
     }
+//    @PostMapping("/register/complete")
+//    public ResponseEntity<ApiResponseFormat<AuthResponse>> completeRegistration(
+//            @RequestBody(required = true) @Valid CompleteRegistrationDto command) {
+//        AuthResponse response = this.completeRegistrationUseCase.execute(command);
+//        return ResponseEntity.ok(ApiResponseFormat.fromResponse(response));
+//    }
 
     @Operation(summary = "Complète la connexion", description = "Valide le code OTP et génère un token d'authentification")
     @ApiResponses(value = {
@@ -76,10 +90,19 @@ public class AuthController {
             @ApiResponse(responseCode = "400", description = "Données invalides ou code OTP incorrect")
     })
     @PostMapping("/login/complete")
-    public ResponseEntity<ApiResponseFormat<AuthResponse>> completeLogin(@RequestBody(required = true) @Valid LoginCompletionDto command) {
+    public ResponseEntity<ApiResponseFormat<AuthResponse>> completeLogin(
+            @RequestBody(required = true) @Valid LoginCompletionDto command,
+            @RequestHeader(value = DeviceBindingFilter.DEVICE_ID_HEADER, required = false) String deviceId,
+            @RequestHeader(value = DeviceBindingFilter.PLATFORM_HEADER, required = false) String platform) {
         AuthResponse response = this.completeLoginUseCase.execute(command);
+        bindDevice(response, deviceId, platform);
         return ResponseEntity.ok(ApiResponseFormat.fromResponse(response));
     }
+//    @PostMapping("/login/complete")
+//    public ResponseEntity<ApiResponseFormat<AuthResponse>> completeLogin(@RequestBody(required = true) @Valid LoginCompletionDto command) {
+//        AuthResponse response = this.completeLoginUseCase.execute(command);
+//        return ResponseEntity.ok(ApiResponseFormat.fromResponse(response));
+//    }
 
     @Operation(summary = "Connexion via un fournisseur OAuth2", description = "Permet à l'utilisateur de se connecter en utilisant un fournisseur OAuth2 (Google, Facebook, etc.)")
     @ApiResponses(value = {
@@ -146,5 +169,21 @@ public class AuthController {
             @RequestBody(required = true) @Valid ResetPasswordValidateDto dto) {
         resetPasswordValidateUseCase.execute(dto);
         return ResponseEntity.ok(ApiResponseFormat.fromResponse(null));
+    }
+
+    /**
+     * Lie l'appareil au compte une fois l'authentification réellement acquise
+     * (OTP validé et token émis) — jamais pendant le processus OTP.
+     * Une liaison impossible ne doit pas faire échouer la connexion : le filtre
+     * adoptera l'appareil à la première requête authentifiée.
+     */
+    private void bindDevice(AuthResponse response, String deviceId, String platform) {
+        if (response == null || response.getUserResponse() == null) return;
+        try {
+            deviceBindingService.bind(response.getUserResponse().getId(),
+                    deviceId, DevicePlatform.fromHeader(platform));
+        } catch (Exception e) {
+            log.error("[Auth] Liaison d'appareil impossible : {}", e.getMessage());
+        }
     }
 }

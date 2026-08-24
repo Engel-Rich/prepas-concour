@@ -1,5 +1,6 @@
 package com.mutrix.prepa.domaines.models;
 
+import com.mutrix.prepa.domaines.valueobjects.DevicePlatform;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -28,6 +29,10 @@ public class UserModel {
     private Boolean hasEmailVerified;
     private Boolean hasPhoneVerified;
     private Date lastLogin;
+    /** Appareil actif — un seul par compte. */
+    private String deviceId;
+    private DevicePlatform platform;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Map<String, Object> metadata;

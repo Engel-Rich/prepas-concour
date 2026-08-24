@@ -21,7 +21,17 @@ public interface FirebaseService {
 
     public Optional<FirebaseUser> getByPhoneNumber(String phoneNumber);
 
+    /**
+     * Vérifie un ID Token Firebase, <b>révocation comprise</b>.
+     * Un token émis avant un {@link #revokeRefreshTokens(String)} est rejeté.
+     */
     public FirebaseUser verifyIdToken(String token);
+
+    /**
+     * Révoque tous les refresh tokens du compte : les sessions ouvertes sur les
+     * autres appareils deviennent invalides dès leur prochain renouvellement.
+     */
+    public void revokeRefreshTokens(String uid);
 
     public void sendPasswordResetEmail(String email);
 

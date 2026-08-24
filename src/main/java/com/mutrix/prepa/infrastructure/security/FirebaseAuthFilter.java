@@ -1,8 +1,8 @@
 package com.mutrix.prepa.infrastructure.security;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
+//import java.nio.charset.StandardCharsets;
+//import java.util.Base64;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -10,7 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.fasterxml.jackson.databind.JsonNode;
+//import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mutrix.prepa.domaines.models.FirebaseUser;
 import com.mutrix.prepa.domaines.services.FirebaseService;
@@ -42,7 +42,7 @@ public class FirebaseAuthFilter extends OncePerRequestFilter {
 
     private final FirebaseService firebaseService;
     private final SecurityUserService securityUserService;
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+//    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
@@ -75,6 +75,31 @@ public class FirebaseAuthFilter extends OncePerRequestFilter {
     }
 
     /**
+     * Résout le UID Firebase depuis un ID Token vérifié.
+     *
+     * <p>Seuls les ID Tokens sont acceptés. Le support des Custom Tokens a été
+     * retiré : leur uid était lu par simple décodage base64 du payload, sans
+     * vérification de signature — n'importe qui pouvait forger
+     * {@code {"uid":"<uid_admin>"}} et obtenir les droits correspondants.
+     *
+     * <p>Aucun client n'en dépend : la console d'administration se connecte via
+     * {@code signInWithEmailAndPassword} puis {@code getIdToken()}, et le mobile
+     * échange son Custom Token contre un ID Token via {@code signInWithCustomToken}.
+     */
+    private String resolveUid(String token) {
+        try {
+            FirebaseUser firebaseUser = firebaseService.verifyIdToken(token);
+            if (firebaseUser != null && firebaseUser.getUid() != null) {
+                return firebaseUser.getUid();
+            }
+        } catch (Exception e) {
+            log.warn("[Auth] Vérification du ID Token échouée : {}", e.getMessage());
+        }
+        log.warn("[Auth] Token Bearer refusé — ID Token invalide, expiré ou révoqué.");
+        return null;
+    }
+
+    /**
      * Tente de résoudre le UID Firebase depuis un token Bearer.
      *
      * <ol>
@@ -83,34 +108,34 @@ public class FirebaseAuthFilter extends OncePerRequestFilter {
      *       lecture du champ {@code uid} dans le payload JWT base64.</li>
      * </ol>
      */
-    private String resolveUid(String token) {
-        // ── 1. Firebase ID Token (clients mobile / SDK Firebase) ──────────────
-        try {
-            FirebaseUser firebaseUser = firebaseService.verifyIdToken(token);
-            if (firebaseUser != null && firebaseUser.getUid() != null) {
-                log.info("[Auth] ID Token vérifié → uid={}", firebaseUser.getUid());
-                return firebaseUser.getUid();
-            }
-            log.warn("[Auth] verifyIdToken a retourné null — token non reconnu comme ID Token.");
-        } catch (Exception e) {
-            log.warn("[Auth] verifyIdToken exception : {}", e.getMessage());
-        }
-
-        // ── 2. Firebase Custom Token (admin panel sans SDK client) ─────────────
-        // Le Custom Token est un JWT dont le payload contient le champ "uid".
-        try {
-            String uid = extractUidFromCustomToken(token);
-            if (uid != null && !uid.isBlank()) {
-                log.debug("Token reconnu comme Firebase Custom Token, uid={}.", uid);
-                return uid;
-            }
-        } catch (Exception e) {
-            log.debug("Impossible d'extraire le uid du Custom Token : {}", e.getMessage());
-        }
-
-        log.warn("Token Bearer non reconnu : ni ID Token ni Custom Token valide.");
-        return null;
-    }
+//    private String resolveUid(String token) {
+//        // ── 1. Firebase ID Token (clients mobile / SDK Firebase) ──────────────
+//        try {
+//            FirebaseUser firebaseUser = firebaseService.verifyIdToken(token);
+//            if (firebaseUser != null && firebaseUser.getUid() != null) {
+//                log.info("[Auth] ID Token vérifié → uid={}", firebaseUser.getUid());
+//                return firebaseUser.getUid();
+//            }
+//            log.warn("[Auth] verifyIdToken a retourné null — token non reconnu comme ID Token.");
+//        } catch (Exception e) {
+//            log.warn("[Auth] verifyIdToken exception : {}", e.getMessage());
+//        }
+//
+//        // ── 2. Firebase Custom Token (admin panel sans SDK client) ─────────────
+//        // Le Custom Token est un JWT dont le payload contient le champ "uid".
+//        try {
+//            String uid = extractUidFromCustomToken(token);
+//            if (uid != null && !uid.isBlank()) {
+//                log.debug("Token reconnu comme Firebase Custom Token, uid={}.", uid);
+//                return uid;
+//            }
+//        } catch (Exception e) {
+//            log.debug("Impossible d'extraire le uid du Custom Token : {}", e.getMessage());
+//        }
+//
+//        log.warn("Token Bearer non reconnu : ni ID Token ni Custom Token valide.");
+//        return null;
+//    }
 
     /**
      * Décode le payload base64 d'un JWT et extrait la claim {@code uid}.
@@ -118,27 +143,28 @@ public class FirebaseAuthFilter extends OncePerRequestFilter {
      * <pre>header.payload.signature</pre>
      * avec {@code payload} contenant {@code {"uid":"<firebaseUid>", ...}}.
      */
-    private String extractUidFromCustomToken(String token) throws Exception {
-        String[] parts = token.split("\\.");
-        if (parts.length < 2) return null;
-
-        // Base64URL decode du payload (pas de vérification de signature ici —
-        // l'existence de l'utilisateur en base suffit comme contrôle d'accès)
-        byte[] decodedBytes = Base64.getUrlDecoder().decode(padBase64(parts[1]));
-        String payload = new String(decodedBytes, StandardCharsets.UTF_8);
-
-        JsonNode node = MAPPER.readTree(payload);
-        JsonNode uidNode = node.get("uid");
-        return (uidNode != null && !uidNode.isNull()) ? uidNode.asText() : null;
-    }
-
+//    private String extractUidFromCustomToken(String token) throws Exception {
+//        String[] parts = token.split("\\.");
+//        if (parts.length < 2) return null;
+//
+//        // Base64URL decode du payload (pas de vérification de signature ici —
+//        // l'existence de l'utilisateur en base suffit comme contrôle d'accès)
+//        byte[] decodedBytes = Base64.getUrlDecoder().decode(padBase64(parts[1]));
+//        String payload = new String(decodedBytes, StandardCharsets.UTF_8);
+//
+//        JsonNode node = MAPPER.readTree(payload);
+//        JsonNode uidNode = node.get("uid");
+//        return (uidNode != null && !uidNode.isNull()) ? uidNode.asText() : null;
+//    }
+//
+//
     /** Ajoute le padding '=' manquant pour Base64URL. */
-    private String padBase64(String base64) {
-        int mod = base64.length() % 4;
-        if (mod == 2) return base64 + "==";
-        if (mod == 3) return base64 + "=";
-        return base64;
-    }
+//    private String padBase64(String base64) {
+//        int mod = base64.length() % 4;
+//        if (mod == 2) return base64 + "==";
+//        if (mod == 3) return base64 + "=";
+//        return base64;
+//    }
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {

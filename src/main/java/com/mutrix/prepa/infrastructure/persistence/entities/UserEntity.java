@@ -1,6 +1,7 @@
 package com.mutrix.prepa.infrastructure.persistence.entities;
 
 
+import com.mutrix.prepa.domaines.valueobjects.DevicePlatform;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -64,6 +65,14 @@ public class UserEntity {
 
     @Column()
     private Date lastLogin;
+
+    /** Appareil actif — un seul par compte. Null pour les comptes antérieurs. */
+    @Column(name = "device_id")
+    private String deviceId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "platform", length = 16)
+    private DevicePlatform platform;
 
     @Column()
     private LocalDateTime createdAt;

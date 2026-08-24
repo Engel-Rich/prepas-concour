@@ -31,6 +31,8 @@ public final class UserEntityMapper {
                 .fcmToken(userEntity.getFcmToken()).firebaseUid(userEntity.getFirebaseUid())
                 .hasEmailVerified(userEntity.getHasEmailVerified()).hasPhoneVerified(userEntity.getHasPhoneVerified())
                 .lastLogin(userEntity.getLastLogin()).metadata(metadata)
+                .deviceId(userEntity.getDeviceId())
+                .platform(userEntity.getPlatform())
                 .profilePictureUrl(userEntity.getProfilePictureUrl())
                 .passwordHash(userEntity.getPasswordHash())
                 .build();
@@ -56,6 +58,8 @@ public final class UserEntityMapper {
                 .fcmToken(userModel.getFcmToken()).firebaseUid(userModel.getFirebaseUid())
                 .hasEmailVerified(userModel.getHasEmailVerified()).hasPhoneVerified(userModel.getHasPhoneVerified())
                 .lastLogin(userModel.getLastLogin()).profilePictureUrl(userModel.getProfilePictureUrl())
+                .deviceId(userModel.getDeviceId())
+                .platform(userModel.getPlatform())
                 .passwordHash(userModel.getPasswordHash())
                 .metadata(metadata)
                 .build();

@@ -1,5 +1,6 @@
 package com.mutrix.prepa.infrastructure.configs;
 
+import com.mutrix.prepa.infrastructure.security.DeviceBindingFilter;
 import com.mutrix.prepa.infrastructure.security.FirebaseAuthFilter;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,8 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig {
     private final FirebaseAuthFilter firebaseAuthFilter;
+    private final DeviceBindingFilter deviceBindingFilter;
+
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -72,7 +75,11 @@ public class SecurityConfig {
                         // routes admin — réservées aux administrateurs
                         .requestMatchers("/admin/**").hasAuthority("ADMIN")
                         .anyRequest().authenticated())
-                .addFilterBefore(firebaseAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(firebaseAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                // Après FirebaseAuthFilter : n'agit que si une authentification
+                // a été posée, donc jamais sur les routes publiques.
+                .addFilterAfter(deviceBindingFilter, FirebaseAuthFilter.class);
+
         return http.build();
     }
 

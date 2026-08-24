@@ -51,6 +51,22 @@ public class ErrorAdvices {
 //     }
 
     /**
+     * Appareil non lié au compte. Le corps porte le code métier
+     * {@code DEVICE_MISMATCH} que le mobile teste pour se déconnecter.
+     */
+    @ExceptionHandler(com.mutrix.prepa.infrastructure.security.DeviceMismatchException.class)
+    public ResponseEntity<java.util.Map<String, Object>> handleDeviceMismatch(
+            com.mutrix.prepa.infrastructure.security.DeviceMismatchException ex) {
+        java.util.Map<String, Object> body = new java.util.LinkedHashMap<>();
+        body.put("statusCode", 409);
+        body.put("success", false);
+        body.put("error", ex.getMessage());
+        body.put("code", com.mutrix.prepa.infrastructure.security.DeviceMismatchException.CODE);
+        body.put("data", null);
+        return ResponseEntity.status(409).body(body);
+    }
+
+    /**
      * Conflit métier : l'état courant interdit l'opération demandée
      * (code déjà consommé, souscription déjà active, session fermée…).
      */

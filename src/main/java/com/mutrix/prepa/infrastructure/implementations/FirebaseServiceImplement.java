@@ -214,7 +214,9 @@ public class FirebaseServiceImplement implements FirebaseService {
         try {
             // Vérifie la signature et l'expiration — appel réseau pour récupérer
             // les clés publiques Google (mis en cache après le premier appel)
-            final FirebaseToken verified = FirebaseAuth.getInstance().verifyIdToken(token);
+            // checkRevoked = true : sans ce drapeau, revokeRefreshTokens() serait
+            // sans effet pendant toute la durée de vie du token (1 h).
+            final FirebaseToken verified = FirebaseAuth.getInstance().verifyIdToken(token, true);
 
             // On construit FirebaseUser DIRECTEMENT depuis les claims du token vérifié,
             // sans faire un deuxième appel réseau getUser() qui peut échouer silencieusement.
@@ -244,6 +246,19 @@ public class FirebaseServiceImplement implements FirebaseService {
             log.error("Error sending password reset email: {}, Code : {}", e.getMessage(), e.getErrorCode());
         } catch (Exception e) {
             log.error("Error sending password reset email: {}", e.getMessage());
+        }
+    }
+
+    @Override
+    public void revokeRefreshTokens(String uid) {
+        if (uid == null || uid.isBlank()) return;
+        try {
+            FirebaseAuth.getInstance().revokeRefreshTokens(uid);
+            log.info("Sessions Firebase révoquées pour uid={}", uid);
+        } catch (FirebaseAuthException e) {
+            log.error("Échec de révocation des sessions Firebase pour uid={} : {}",
+                    uid, e.getMessage());
+            throw new RuntimeException("Impossible de révoquer les sessions Firebase", e);
         }
     }
 
