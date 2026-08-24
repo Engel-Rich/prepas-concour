@@ -52,6 +52,13 @@ minio:
   access-key:  ${MINIO_ACCESS_KEY:prepa-db-root}
   secret-key:  ${MINIO_SECRET_KEY:prepa-db-pass}
 
+video:
+  encryption:
+    # Clé maîtresse AES-256 en base64 (32 octets décodés).
+    # Absente = chiffrement désactivé, les vidéos sont déposées en clair.
+    # Générer : openssl rand -base64 32
+    master-key: ${VIDEO_ENCRYPTION_MASTER_KEY:}
+
 payment:
   campay:
     url:      ${CAMPAY_URL:https://demo.campay.net/api}

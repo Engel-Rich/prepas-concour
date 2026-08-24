@@ -21,6 +21,10 @@ public class Cours {
     private UUID matiereId;
     private UUID userId;
     private Boolean gratuit;
+    /** Vrai si la vidéo est stockée chiffrée dans le bucket. */
+    private Boolean hasBeenCrypted;
+    /** Dernier motif d'échec de chiffrement, destiné à la console d'administration. */
+    private String encryptionError;
     private Boolean isActive;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

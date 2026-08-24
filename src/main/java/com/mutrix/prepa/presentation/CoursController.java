@@ -1,9 +1,11 @@
 package com.mutrix.prepa.presentation;
 
 import com.mutrix.prepa.application.dto.response.CoursResponse;
+import com.mutrix.prepa.application.dto.response.cours.VideoKeyResponse;
 import com.mutrix.prepa.application.usecases.cours.GetAllCoursUseCase;
 import com.mutrix.prepa.application.usecases.cours.GetCoursByMatiereUseCase;
 import com.mutrix.prepa.application.usecases.cours.GetCoursUseCase;
+import com.mutrix.prepa.application.usecases.cours.GetCoursVideoKeyUseCase;
 import com.mutrix.prepa.cors.ApiResponseFormat;
 import com.mutrix.prepa.cors.PageResponse;
 import com.mutrix.prepa.infrastructure.security.SecurityUser;
@@ -29,6 +31,7 @@ public class CoursController {
     private final GetCoursUseCase getCoursUseCase;
     private final GetAllCoursUseCase getAllCoursUseCase;
     private final GetCoursByMatiereUseCase getCoursByMatiereUseCase;
+    private final GetCoursVideoKeyUseCase getCoursVideoKeyUseCase;
 
     @Operation(summary = "Obtenir un cours par ID", description = "Retourne les détails d'un cours spécifique. Le videoUrl est masqué si l'utilisateur n'a pas de souscription active.")
     @ApiResponses(value = {
@@ -70,5 +73,23 @@ public class CoursController {
         Pageable pageable = PageRequest.of(page, size);
         PageResponse<CoursResponse> response = getCoursByMatiereUseCase.execute(matiereId, pageable);
         return ResponseEntity.ok(ApiResponseFormat.fromResponse(response));
+    }
+
+    @Operation(summary = "Obtenir la clé de déchiffrement d'une vidéo",
+            description = "Retourne la clé de contenu permettant de lire une vidéo chiffrée. "
+                    + "Réservée aux comptes disposant d'un accès actif au cours, ou aux cours gratuits. "
+                    + "Le client conserve la clé dans son coffre sécurisé pour la lecture hors connexion.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Clé délivrée"),
+            @ApiResponse(responseCode = "401", description = "Accès refusé — aucune souscription active"),
+            @ApiResponse(responseCode = "404", description = "Cours introuvable ou vidéo non chiffrée"),
+    })
+    @GetMapping("/{id}/video-key")
+    public ResponseEntity<ApiResponseFormat<VideoKeyResponse>> getVideoKey(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal SecurityUser securityUser) {
+        UUID userId = securityUser != null ? securityUser.getUser().getId() : null;
+        return ResponseEntity.ok(ApiResponseFormat.fromResponse(
+                getCoursVideoKeyUseCase.execute(id, userId)));
     }
 }

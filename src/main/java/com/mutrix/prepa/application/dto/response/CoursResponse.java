@@ -80,6 +80,13 @@ public class CoursResponse {
     )
     private Map<String, Object> metadata;
 
+    @Schema(
+            description = "Vrai si la vidéo est stockée chiffrée : le client doit la "
+                    + "déchiffrer avec la clé de contenu avant lecture",
+            example = "true"
+    )
+    private Boolean hasBeenCrypted;
+
     public static CoursResponse fromDomain(Cours cours) {
         return fromDomain(cours, true);
     }
@@ -92,6 +99,7 @@ public class CoursResponse {
                 .title(cours.getTitle())
                 .body(cours.getBody())
                 .videoUrl(videoUrl)
+                .hasBeenCrypted(Boolean.TRUE.equals(cours.getHasBeenCrypted()))
                 .matiereId(cours.getMatiereId())
                 .gratuit(gratuit)
                 .userId(cours.getUserId())

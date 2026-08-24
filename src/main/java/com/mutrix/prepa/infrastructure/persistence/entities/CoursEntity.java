@@ -41,6 +41,15 @@ public class CoursEntity {
     @Column(nullable = false)
     private Boolean gratuit = false;
 
+    /** Vrai si l'objet stocké dans le bucket est un conteneur chiffré. */
+    @Column(name = "has_been_crypted", nullable = false)
+    @Builder.Default
+    private Boolean hasBeenCrypted = false;
+
+    /** Dernier motif d'échec de chiffrement, exposé à l'administration. */
+    @Column(name = "encryption_error", columnDefinition = "TEXT")
+    private String encryptionError;
+
     @Column()
     private Boolean isActive;
 

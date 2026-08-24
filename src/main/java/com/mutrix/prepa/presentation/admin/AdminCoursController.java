@@ -3,6 +3,7 @@ package com.mutrix.prepa.presentation.admin;
 import com.mutrix.prepa.application.dto.commandes.cours.CreateCoursCommand;
 import com.mutrix.prepa.application.dto.commandes.cours.UpdateCoursCommand;
 import com.mutrix.prepa.application.dto.response.CoursResponse;
+import com.mutrix.prepa.application.dto.response.cours.VideoEncryptionResponse;
 import com.mutrix.prepa.application.usecases.cours.*;
 import com.mutrix.prepa.cors.ApiResponseFormat;
 import com.mutrix.prepa.cors.PageResponse;
@@ -38,6 +39,7 @@ public class AdminCoursController {
     private final GetAllCoursUseCase getAllCoursUseCase;
     private final GetCoursByMatiereUseCase getCoursByMatiereUseCase;
     private final DeleteCoursUseCase deleteCoursUseCase;
+    private final EncryptCoursVideoUseCase encryptCoursVideoUseCase;
     private final MinioService minioService;
 
     private UUID getAuthenticatedUserId() {
@@ -63,23 +65,27 @@ public class AdminCoursController {
 
         UUID userId = getAuthenticatedUserId();
 
-        // Upload file to MinIO if provided
-        String videoUrl = null;
-        if (file != null && !file.isEmpty()) {
-            videoUrl = minioService.uploadFile(file, "cours");
-        }
-
+        // Le cours est créé d'abord : la clé de contenu est rattachée à son id.
         CreateCoursCommand command = CreateCoursCommand.builder()
                 .title(title)
                 .body(body)
-                .videoUrl(videoUrl)
+                .videoUrl(null)
                 .matiereId(matiereId)
                 .isActive(isActive)
                 .gratuit(gratuit)
                 .build();
 
+        CoursResponse created = createCoursUseCase.execute(command, userId);
+
+        // Puis la vidéo est chiffrée et déposée. Un échec de chiffrement
+        // n'empêche pas le dépôt : la vidéo part en clair et le motif est
+        // conservé pour la console.
+        if (file != null && !file.isEmpty()) {
+            created = attachVideo(created.getId(), file);
+        }
+
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponseFormat.fromResponse(createCoursUseCase.execute(command, userId)));
+                .body(ApiResponseFormat.fromResponse(created));
     }
 
     @Operation(summary = "Mettre à jour un cours",
@@ -101,22 +107,23 @@ public class AdminCoursController {
 
         UUID userId = getAuthenticatedUserId();
 
-        // Upload new file to MinIO only if a new file is provided
-        String videoUrl = null;
-        if (file != null && !file.isEmpty()) {
-            videoUrl = minioService.uploadFile(file, "cours");
-        }
-
         UpdateCoursCommand command = UpdateCoursCommand.builder()
                 .title(title)
                 .body(body)
-                .videoUrl(videoUrl)   // null → keep existing URL in use case
+                .videoUrl(null)   // null → conserve l'URL existante dans le use case
                 .matiereId(matiereId)
                 .isActive(isActive)
                 .gratuit(gratuit)
                 .build();
 
-        return ResponseEntity.ok(ApiResponseFormat.fromResponse(updateCoursUseCase.execute(id, command, userId)));
+        CoursResponse updated = updateCoursUseCase.execute(id, command, userId);
+
+        // Nouvelle vidéo : elle remplace l'ancienne, chiffrée si possible.
+        if (file != null && !file.isEmpty()) {
+            updated = attachVideo(id, file);
+        }
+
+        return ResponseEntity.ok(ApiResponseFormat.fromResponse(updated));
     }
 
     @Operation(summary = "Récupérer un cours par ID")
@@ -155,6 +162,27 @@ public class AdminCoursController {
             @RequestParam(defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size);
         return ResponseEntity.ok(ApiResponseFormat.fromResponse(getCoursByMatiereUseCase.execute(matiereId, pageable)));
+    }
+
+    @Operation(summary = "Chiffrer la vidéo d'un cours",
+            description = "Chiffre une vidéo déposée en clair et remplace l'objet dans le bucket. "
+                    + "Opération rejouable : en cas d'échec, la vidéo reste accessible en clair et "
+                    + "le motif est conservé dans le champ encryptionError du cours.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Opération effectuée — voir le champ outcome"),
+            @ApiResponse(responseCode = "404", description = "Cours introuvable"),
+            @ApiResponse(responseCode = "403", description = "Accès refusé")
+    })
+    @PostMapping("/{id}/encrypt-video")
+    public ResponseEntity<ApiResponseFormat<VideoEncryptionResponse>> encryptVideo(
+            @Parameter(description = "UUID du cours") @PathVariable UUID id) {
+        return ResponseEntity.ok(ApiResponseFormat.fromResponse(
+                encryptCoursVideoUseCase.execute(id)));
+    }
+
+    /** Dépose et chiffre la vidéo d'un cours déjà créé. */
+    private CoursResponse attachVideo(UUID coursId, MultipartFile file) {
+        return encryptCoursVideoUseCase.attachVideo(coursId, file);
     }
 
     @Operation(summary = "Supprimer un cours")

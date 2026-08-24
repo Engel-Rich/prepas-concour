@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.InputStream;
 import java.util.UUID;
 
 @Slf4j
@@ -127,5 +128,107 @@ public class MinioService {
      */
     public String uploadFile(MultipartFile file) {
         return uploadFile(file, "uploads");
+    }
+
+    // ── Flux (vidéos chiffrées) ───────────────────────────────────────────────
+
+    /**
+     * Dépose un flux sans le charger en mémoire.
+     *
+     * <p>Utilisé pour les conteneurs vidéo chiffrés : une vidéo de plusieurs
+     * centaines de mégaoctets ne doit jamais transiter par un tableau d'octets.
+     * {@code putObject} consomme le flux par parties de 10 Mio.
+     *
+     * @param objectName chemin complet de l'objet dans le bucket
+     * @param size       taille exacte du flux, ou -1 si inconnue
+     * @return URL publique de l'objet stocké
+     */
+    public String uploadStream(InputStream stream, String objectName, long size, String contentType) {
+        try {
+            ensureBucketPublic();
+
+            minioClient.putObject(
+                    PutObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(objectName)
+                            .stream(stream, size, size < 0 ? 10L * 1024 * 1024 : -1)
+                            .contentType(contentType != null ? contentType : "application/octet-stream")
+                            .build());
+
+            String publicBaseUrl = minioPublicUrl.replaceAll("/+$", "");
+            String url = publicBaseUrl + "/" + bucketName + "/" + objectName;
+            log.info("Flux uploadé sur MinIO : {} ({} octets)", url, size);
+            return url;
+
+        } catch (Exception e) {
+            log.error("Erreur upload flux MinIO ({}) : {}", objectName, e.getMessage(), e);
+            throw new RuntimeException("Erreur lors de l'upload du flux vers MinIO : " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Ouvre un objet existant en lecture. L'appelant referme le flux.
+     * Le nom d'objet est déduit d'une URL publique produite par ce service.
+     */
+    public InputStream openStream(String objectName) {
+        try {
+            return minioClient.getObject(
+                    GetObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(objectName)
+                            .build());
+        } catch (Exception e) {
+            log.error("Erreur lecture MinIO ({}) : {}", objectName, e.getMessage());
+            throw new RuntimeException("Objet introuvable sur MinIO : " + objectName, e);
+        }
+    }
+
+    /** Taille d'un objet, utile pour dimensionner le conteneur chiffré. */
+    public long objectSize(String objectName) {
+        try {
+            StatObjectResponse stat = minioClient.statObject(
+                    StatObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(objectName)
+                            .build());
+            return stat.size();
+        } catch (Exception e) {
+            log.error("Erreur stat MinIO ({}) : {}", objectName, e.getMessage());
+            throw new RuntimeException("Impossible de lire la taille de l'objet : " + objectName, e);
+        }
+    }
+
+    /** Suppression best-effort : un objet résiduel ne doit pas faire échouer l'opération. */
+    public void deleteQuietly(String objectName) {
+        try {
+            minioClient.removeObject(
+                    RemoveObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(objectName)
+                            .build());
+            log.info("Objet MinIO supprimé : {}", objectName);
+        } catch (Exception e) {
+            log.warn("Suppression MinIO impossible ({}) : {}", objectName, e.getMessage());
+        }
+    }
+
+    /**
+     * Extrait le nom d'objet d'une URL publique produite par ce service.
+     * Renvoie {@code null} si l'URL ne provient pas de ce bucket.
+     */
+    public String objectNameFromUrl(String url) {
+        if (url == null || url.isBlank()) return null;
+        String marker = "/" + bucketName + "/";
+        int index = url.indexOf(marker);
+        if (index < 0) return null;
+        return url.substring(index + marker.length());
+    }
+
+    /** Construit un chemin d'objet unique dans un dossier donné. */
+    public String buildObjectName(String folder, String filename) {
+        String safeFolder = (folder != null && !folder.isBlank())
+                ? folder.replaceAll("[^a-zA-Z0-9_\\-]", "_").toLowerCase()
+                : "uploads";
+        return safeFolder + "/" + UUID.randomUUID() + "-" + filename;
     }
 }
