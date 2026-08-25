@@ -23,6 +23,8 @@ public final class UserResponseMapper {
                 .profilePictureUrl(user.getProfilePictureUrl())
                 .isActive(user.getIsActive())
                 .createdAt(user.getCreatedAt())
+                .deviceId(user.getDeviceId())
+                .platform(user.getPlatform())
                 .build();
     }
 }

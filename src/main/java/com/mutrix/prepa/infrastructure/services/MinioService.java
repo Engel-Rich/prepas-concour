@@ -184,6 +184,29 @@ public class MinioService {
     }
 
     /** Taille d'un objet, utile pour dimensionner le conteneur chiffré. */
+    /**
+     * Ouvre une plage d'octets d'un objet.
+     *
+     * <p>Permet de ne rapatrier que les blocs nécessaires au lieu du fichier
+     * entier — indispensable pour prévisualiser une vidéo de plusieurs
+     * centaines de mégaoctets sans la charger côté serveur.
+     */
+    public InputStream openRange(String objectName, long offset, long length) {
+        try {
+            return minioClient.getObject(
+                    GetObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(objectName)
+                            .offset(offset)
+                            .length(length)
+                            .build());
+        } catch (Exception e) {
+            log.error("Erreur lecture partielle MinIO ({} @{}+{}) : {}",
+                    objectName, offset, length, e.getMessage());
+            throw new RuntimeException("Impossible de lire la plage demandée : " + objectName, e);
+        }
+    }
+
     public long objectSize(String objectName) {
         try {
             StatObjectResponse stat = minioClient.statObject(
@@ -195,6 +218,23 @@ public class MinioService {
         } catch (Exception e) {
             log.error("Erreur stat MinIO ({}) : {}", objectName, e.getMessage());
             throw new RuntimeException("Impossible de lire la taille de l'objet : " + objectName, e);
+        }
+    }
+
+    /** Taille et empreinte d'un objet — le client s'en sert pour valider une reprise. */
+    public record ObjectStat(long size, String etag, String contentType) {}
+
+    public ObjectStat objectStat(String objectName) {
+        try {
+            StatObjectResponse stat = minioClient.statObject(
+                    StatObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(objectName)
+                            .build());
+            return new ObjectStat(stat.size(), stat.etag(), stat.contentType());
+        } catch (Exception e) {
+            log.error("Erreur stat MinIO ({}) : {}", objectName, e.getMessage());
+            throw new RuntimeException("Impossible de lire les métadonnées : " + objectName, e);
         }
     }
 

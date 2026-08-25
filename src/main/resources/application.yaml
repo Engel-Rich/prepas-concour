@@ -58,6 +58,9 @@ video:
     # Absente = chiffrement désactivé, les vidéos sont déposées en clair.
     # Générer : openssl rand -base64 32
     master-key: ${VIDEO_ENCRYPTION_MASTER_KEY:}
+    preview:
+      token-secret: ${VIDEO_PREVIEW_SECRET:}
+      ttl-seconds: 300
 
 payment:
   campay:

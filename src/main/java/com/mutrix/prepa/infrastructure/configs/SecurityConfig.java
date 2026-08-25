@@ -60,6 +60,10 @@ public class SecurityConfig {
                         .requestMatchers("/auth/**").permitAll()
                         // webhooks fournisseurs de paiement — sécurisés par signature interne
                         .requestMatchers("/webhooks/**").permitAll()
+                        // Prévisualisation vidéo : autorisée par jeton signé
+                        // à durée de vie courte, pas par le Bearer habituel —
+                        // une balise <video> ne peut pas porter d'en-tête.
+                        .requestMatchers("/cours-preview/**").permitAll()
                         // actuator
                         .requestMatchers("/actuator/**").permitAll()
                         // Swagger

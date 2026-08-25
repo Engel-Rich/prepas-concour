@@ -2,10 +2,12 @@ package com.mutrix.prepa.presentation;
 
 import com.mutrix.prepa.application.dto.response.CoursResponse;
 import com.mutrix.prepa.application.dto.response.cours.VideoKeyResponse;
+import com.mutrix.prepa.application.dto.response.cours.VideoMetadataResponse;
 import com.mutrix.prepa.application.usecases.cours.GetAllCoursUseCase;
 import com.mutrix.prepa.application.usecases.cours.GetCoursByMatiereUseCase;
 import com.mutrix.prepa.application.usecases.cours.GetCoursUseCase;
 import com.mutrix.prepa.application.usecases.cours.GetCoursVideoKeyUseCase;
+import com.mutrix.prepa.application.usecases.cours.GetCoursVideoMetadataUseCase;
 import com.mutrix.prepa.cors.ApiResponseFormat;
 import com.mutrix.prepa.cors.PageResponse;
 import com.mutrix.prepa.infrastructure.security.SecurityUser;
@@ -32,6 +34,7 @@ public class CoursController {
     private final GetAllCoursUseCase getAllCoursUseCase;
     private final GetCoursByMatiereUseCase getCoursByMatiereUseCase;
     private final GetCoursVideoKeyUseCase getCoursVideoKeyUseCase;
+    private final GetCoursVideoMetadataUseCase getCoursVideoMetadataUseCase;
 
     @Operation(summary = "Obtenir un cours par ID", description = "Retourne les détails d'un cours spécifique. Le videoUrl est masqué si l'utilisateur n'a pas de souscription active.")
     @ApiResponses(value = {
@@ -91,5 +94,23 @@ public class CoursController {
         UUID userId = securityUser != null ? securityUser.getUser().getId() : null;
         return ResponseEntity.ok(ApiResponseFormat.fromResponse(
                 getCoursVideoKeyUseCase.execute(id, userId)));
+    }
+
+    @Operation(summary = "Métadonnées de la vidéo d'un cours",
+            description = "Taille, empreinte et support des requêtes Range. Le client compare "
+                    + "l'empreinte à celle mémorisée lors d'un téléchargement partiel : si elle "
+                    + "a changé, le fragment local est obsolète et doit être rejeté.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Métadonnées récupérées"),
+            @ApiResponse(responseCode = "401", description = "Accès refusé"),
+            @ApiResponse(responseCode = "404", description = "Cours ou vidéo introuvable"),
+    })
+    @GetMapping("/{id}/video-metadata")
+    public ResponseEntity<ApiResponseFormat<VideoMetadataResponse>> getVideoMetadata(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal SecurityUser securityUser) {
+        UUID userId = securityUser != null ? securityUser.getUser().getId() : null;
+        return ResponseEntity.ok(ApiResponseFormat.fromResponse(
+                getCoursVideoMetadataUseCase.execute(id, userId)));
     }
 }

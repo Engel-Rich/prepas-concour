@@ -5,6 +5,9 @@ import com.mutrix.prepa.application.dto.commandes.cours.UpdateCoursCommand;
 import com.mutrix.prepa.application.dto.response.CoursResponse;
 import com.mutrix.prepa.application.dto.response.cours.VideoEncryptionResponse;
 import com.mutrix.prepa.application.usecases.cours.*;
+import com.mutrix.prepa.infrastructure.crypto.VideoPreviewTokenService;
+import jakarta.servlet.http.HttpServletResponse;
+import java.util.Map;
 import com.mutrix.prepa.cors.ApiResponseFormat;
 import com.mutrix.prepa.cors.PageResponse;
 import com.mutrix.prepa.infrastructure.security.SecurityUser;
@@ -37,6 +40,9 @@ public class AdminCoursController {
     private final UpdateCoursUseCase updateCoursUseCase;
     private final GetCoursUseCase getCoursUseCase;
     private final GetAllCoursUseCase getAllCoursUseCase;
+    private final SearchCoursUseCase searchCoursUseCase;
+    private final StreamCoursVideoUseCase streamCoursVideoUseCase;
+    private final VideoPreviewTokenService videoPreviewTokenService;
     private final GetCoursByMatiereUseCase getCoursByMatiereUseCase;
     private final DeleteCoursUseCase deleteCoursUseCase;
     private final EncryptCoursVideoUseCase encryptCoursVideoUseCase;
@@ -145,9 +151,84 @@ public class AdminCoursController {
     })
     @GetMapping
     public ResponseEntity<ApiResponseFormat<PageResponse<CoursResponse>>> listAll(
+            @Parameter(description = "Filtrer sur une matière") @RequestParam(required = false) UUID matiereId,
+            @Parameter(description = "Filtrer sur une session de concours") @RequestParam(required = false) UUID sessionId,
+            @Parameter(description = "Filtrer sur l'état de chiffrement") @RequestParam(required = false) Boolean hasBeenCrypted,
+            @Parameter(description = "Recherche sur le titre") @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size) {
-        return ResponseEntity.ok(ApiResponseFormat.fromResponse(getAllCoursUseCase.execute(page, size)));
+        // Les filtres sont cumulables et appliqués en base : filtrer la seule
+        // page courante côté navigateur donnerait des résultats faux.
+        return ResponseEntity.ok(ApiResponseFormat.fromResponse(
+                searchCoursUseCase.execute(matiereId, sessionId, hasBeenCrypted, search, page, size)));
+    }
+
+    @Operation(summary = "Obtenir un jeton de prévisualisation",
+            description = "Délivre un jeton signé, valable quelques minutes, permettant au lecteur "
+                    + "du navigateur de lire la vidéo déchiffrée sans en-tête d'authentification.")
+    @PostMapping("/{id}/video-preview-token")
+    public ResponseEntity<ApiResponseFormat<Map<String, String>>> videoPreviewToken(
+            @Parameter(description = "UUID du cours") @PathVariable UUID id) {
+        String token = videoPreviewTokenService.issue(id);
+        return ResponseEntity.ok(ApiResponseFormat.fromResponse(
+                Map.of("token", token, "path", "/cours-preview/" + id)));
+    }
+
+    @Operation(summary = "Prévisualiser la vidéo d'un cours",
+            description = "Renvoie la vidéo en clair, déchiffrée à la volée si nécessaire. "
+                    + "Supporte les requêtes Range pour permettre la navigation dans le lecteur. "
+                    + "La clé de contenu ne quitte jamais le serveur.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Flux complet"),
+            @ApiResponse(responseCode = "206", description = "Plage partielle"),
+            @ApiResponse(responseCode = "404", description = "Cours ou vidéo introuvable"),
+            @ApiResponse(responseCode = "403", description = "Accès refusé")
+    })
+    @GetMapping("/{id}/video-stream")
+    public void streamVideo(
+            @Parameter(description = "UUID du cours") @PathVariable UUID id,
+            @RequestHeader(value = "Range", required = false) String rangeHeader,
+            HttpServletResponse response) throws Exception {
+
+        StreamCoursVideoUseCase.StreamInfo info = streamCoursVideoUseCase.describe(id);
+        long total = info.totalSize();
+
+        long from = 0;
+        long to = total - 1;
+        boolean partial = false;
+
+        // Range: bytes=start-[end] — le lecteur du navigateur l'envoie dès
+        // qu'il veut se déplacer dans la vidéo.
+        if (rangeHeader != null && rangeHeader.startsWith("bytes=")) {
+            String[] bounds = rangeHeader.substring(6).split("-", 2);
+            try {
+                from = Long.parseLong(bounds[0].trim());
+                if (bounds.length > 1 && !bounds[1].isBlank()) {
+                    to = Math.min(Long.parseLong(bounds[1].trim()), total - 1);
+                }
+                partial = true;
+            } catch (NumberFormatException ignored) {
+                // En-tête illisible : on sert le fichier entier.
+            }
+        }
+
+        if (from >= total || from > to) {
+            response.setStatus(HttpServletResponse.SC_REQUESTED_RANGE_NOT_SATISFIABLE);
+            response.setHeader("Content-Range", "bytes */" + total);
+            return;
+        }
+
+        response.setStatus(partial
+                ? HttpServletResponse.SC_PARTIAL_CONTENT
+                : HttpServletResponse.SC_OK);
+        response.setContentType(info.contentType());
+        response.setHeader("Accept-Ranges", "bytes");
+        response.setHeader("Content-Length", String.valueOf(to - from + 1));
+        if (partial) {
+            response.setHeader("Content-Range", "bytes " + from + "-" + to + "/" + total);
+        }
+
+        streamCoursVideoUseCase.writeRange(id, info, from, to, response);
     }
 
     @Operation(summary = "Lister les cours par matière")

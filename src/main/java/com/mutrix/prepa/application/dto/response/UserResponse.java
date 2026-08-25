@@ -1,6 +1,7 @@
 package com.mutrix.prepa.application.dto.response;
 
 import com.mutrix.prepa.domaines.models.Roles;
+import com.mutrix.prepa.domaines.valueobjects.DevicePlatform;
 import com.mutrix.prepa.domaines.valueobjects.UserRole;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
@@ -57,4 +58,15 @@ public class UserResponse {
 
     @Schema(description = "Date d'inscription")
     private LocalDateTime createdAt;
+
+    // ── Appareil lié ──────────────────────────────────────────────────────────
+    // Non sensible pour le titulaire : c'est son propre appareil, dont
+    // l'identifiant est déjà généré et transmis par son application.
+    // Côté console, ces deux champs servent au diagnostic des accès.
+
+    @Schema(description = "Identifiant de l'appareil actif lié au compte")
+    private String deviceId;
+
+    @Schema(description = "Système de l'appareil actif", example = "ANDROID")
+    private DevicePlatform platform;
 }
