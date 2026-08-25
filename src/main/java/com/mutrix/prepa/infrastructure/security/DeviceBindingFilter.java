@@ -58,6 +58,17 @@ public class DeviceBindingFilter extends OncePerRequestFilter {
             return;
         }
 
+        // La console d'administration tourne dans un navigateur : aucun
+        // identifiant d'appareil stable n'y existe. L'exemption porte sur le
+        // RÔLE et non sur le chemin, car la console consomme aussi des routes
+        // hors /admin — /payment-services, /payment-providers,
+        // /concours-sessions/…/cours — qu'une liste de chemins obligerait à
+        // compléter à chaque nouvel appel.
+        if (isAdmin(auth)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String deviceId = trimToNull(request.getHeader(DEVICE_ID_HEADER));
         DevicePlatform platform = DevicePlatform.fromHeader(request.getHeader(PLATFORM_HEADER));
 
@@ -83,11 +94,19 @@ public class DeviceBindingFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
+    /** Un compte administrateur n'est pas lié à un appareil. */
+    private boolean isAdmin(Authentication auth) {
+        return auth.getAuthorities().stream()
+                .anyMatch(granted -> "ADMIN".equals(granted.getAuthority()));
+    }
+
     /**
-     * La console d'administration s'exécute dans un navigateur : aucun
-     * identifiant d'appareil fiable n'y existe. Les routes publiques sont
-     * couvertes par l'absence d'authentification, mais {@code /admin/**} est
-     * authentifié — il faut donc l'exempter explicitement.
+     * Chemins jamais concernés par le contrôle d'appareil.
+     *
+     * <p>Les routes publiques sont déjà couvertes par l'absence
+     * d'authentification ; celles listées ici le sont explicitement parce
+     * qu'elles peuvent porter un jeton sans pour autant relever d'une session
+     * mobile liée à un appareil.
      */
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
@@ -95,6 +114,7 @@ public class DeviceBindingFilter extends OncePerRequestFilter {
         return path.startsWith("/admin")
                 || path.startsWith("/auth")
                 || path.startsWith("/webhooks")
+                || path.startsWith("/cours-preview")
                 || path.startsWith("/swagger-ui")
                 || path.startsWith("/api-docs")
                 || path.startsWith("/actuator");
